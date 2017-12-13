@@ -1,9 +1,9 @@
 <?php
 /*
-Plugin Name:  PWA
-Plugin URI:   https://developer.wordpress.org/plugins/the-basics/
-Description:  Plugin that focus on PWA which rightnow help the website to load quickly and implement service workers for better performance navigation
-Version:      20160911
+Plugin Name:  WPWA
+Plugin URI:   https://github.com/tyohan/wpwa
+Description:  WordPress plugin to optimize loading performance with minimum configuration using PWA approach
+Version:      0.1
 Author:       tyohan@gmail.com
 Author URI:   https://tyohan.me
 License:      GPL2
@@ -28,7 +28,6 @@ along with {Plugin Name}. If not, see {License URI}.
 
 defined( 'ABSPATH' ) or die( 'Nope, not accessing this' );
 
-require __DIR__ . '/vendor/autoload.php';
 require_once(dirname(__FILE__).'/WPWA.php');
 WPWA::instance();
 
