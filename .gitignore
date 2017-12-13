@@ -39,3 +39,4 @@ node_modules/
 
 # ignore composer dependency directories
 vendor/
+composer.lock
