@@ -1,5 +1,8 @@
 importScripts('node_modules/workbox-sw/build/importScripts/workbox-sw.dev.v2.1.2.js');
 
+self.addEventListener('install', () => self.skipWaiting());
+self.addEventListener('activate', () => self.clients.claim());
+
 const workboxSW = new WorkboxSW();
 // let preCacheAssets=jsassets.concat(cssassets);
 // workboxSW.precache(jsassets);
