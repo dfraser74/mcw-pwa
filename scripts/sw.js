@@ -1,16 +1,10 @@
-importScripts('node_modules/workbox-sw/build/importScripts/workbox-sw.dev.v2.1.2.js');
-
 self.addEventListener('install', () => self.skipWaiting());
 self.addEventListener('activate', () => self.clients.claim());
 
 const workboxSW = new WorkboxSW();
-// let preCacheAssets=jsassets.concat(cssassets);
-// workboxSW.precache(jsassets);
 
 workboxSW.router.registerRoute(/wp-admin(.*)|(.*)preview=true(.*)/,
-    workboxSW.strategies.cacheFirst({
-        cacheName: 'network-only'
-    })
+    workboxSW.strategies.networkOnly()
 );
 
 // Cache for static assets. We check using a cache first strategy
@@ -46,7 +40,7 @@ workboxSW.router.registerRoute(/(.*)\.(?:woff|eot|woff2|ttf|svg)$/,
     })
 );
 
-workboxSW.router.registerRoute('https://fonts.googleapis.com/(.*)',
+workboxSW.router.registerRoute(/https:\/\/fonts.googleapis.com\/(.*)/,
 workboxSW.strategies.cacheFirst({
   cacheName: 'fonts-cache',
     cacheExpiration: {

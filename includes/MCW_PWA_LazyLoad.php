@@ -70,7 +70,7 @@ class MCW_PWA_LazyLoad {
       private function __construct(){
         add_action('wp_print_header_scripts', array($this,'addPolyfil'),999);
         $this->filterLazyLoadImages();
-        wp_enqueue_script( 'wpwa_lazyload', plugin_dir_url(__FILE__). 'scripts/lazyload.js');
+        wp_enqueue_script( 'wpwa_lazyload', MCW_PWA_URL. 'scripts/lazyload.js');
       }
 
       public function addPolyfil(){
@@ -78,7 +78,7 @@ class MCW_PWA_LazyLoad {
           <script>
           if (!(IntersectionObserver in window)) {
             let polyfil=document.createElement(\'script\');
-            polyfil.setAttribute(\'src\',\''.plugin_dir_url(__FILE__).'scripts/intersection-observer.js\');
+            polyfil.setAttribute(\'src\',\''.MCW_PWA_URL.'scripts/intersection-observer.js\');
             document.head.appendChild(polyfil);
           }         
           </script>
