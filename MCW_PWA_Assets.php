@@ -1,7 +1,6 @@
 <?php
-use MatthiasMullie\Minify;
 
-class WPWAAssets{
+class MCW_PWA_Assets{
 	private static $__instance = null;
 	private $_scripts=[];
 	private $_styles=[];
@@ -9,11 +8,11 @@ class WPWAAssets{
 	/**
 	 * Singleton implementation
 	 *
-	 * @return object
+	 * @return MCW_PWA_Assets instance
 	 */
 	public static function instance() {
-		if ( ! is_a( self::$__instance, 'WPWAAssets' ) ) {
-			self::$__instance = new WPWAAssets();
+		if ( ! is_a( self::$__instance, 'MCW_PWA_Assets' ) ) {
+			self::$__instance = new MCW_PWA_Assets();
 		}
 
 		return self::$__instance;

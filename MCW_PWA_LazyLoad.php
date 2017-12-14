@@ -1,15 +1,14 @@
 <?php
-
-class WPWALazyLoad {
+class MCW_PWA_LazyLoad {
     private static $__instance = null;
 	/**
 	 * Singleton implementation
 	 *
-	 * @return object
+	 * @return MCW_PWA_LazyLoad instance
 	 */
 	public static function instance() {
-		if ( ! is_a( self::$__instance, 'WPWALazyLoad' ) ) {
-			self::$__instance = new WPWALazyLoad();
+		if ( ! is_a( self::$__instance, 'MCW_PWA_LazyLoad' ) ) {
+			self::$__instance = new MCW_PWA_LazyLoad();
 		}
 
 		return self::$__instance;
