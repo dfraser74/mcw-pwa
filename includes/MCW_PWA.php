@@ -22,39 +22,22 @@ class MCW_PWA {
         add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
         add_action( 'init', array( $this, 'registerRewriteRule' ) );
         
-        //disable this for now until get response from AMP plugin team
-        //$this->registerAMPServiceworker();
-        
+        //amp support
+        add_action( 'amp_post_template_head', array( $this, 'renderAMPSWScript' ) );
+        add_action( 'amp_post_template_footer', array( $this, 'renderAMPSWElement' ) );
     }
     public function registerQueryVar( $vars ) {
 		$vars[] = MCW_SW_QUERY_VAR;
 		return $vars;
     }
-    /* 
-    //disable this for now until get response from AMP plugin team
-
-    public function registerAMPServiceworker(){
-        // AMP support
-		add_action( 'amp_post_template_head', array( $this, 'renderAMPSWScript' ) );
-		add_action( 'amp_post_template_footer', array( $this, 'renderAMPSWElement' ) );
-    }
-
-    public function fixAmpServiceworker($tag,$handle){
-        if($handle==='amp-install-serviceworker'){
-            $tag= str_replace(' src', ' custom-element="amp-install-serviceworker" src', $tag);
-        }
-        return $tag;
-    }
 
     public function renderAMPSWScript(){
-        wp_register_script('mcw-amp-install-serviceworker','https://cdn.ampproject.org/v0/amp-install-serviceworker-0.1.js');
-        add_filter('script_loader_tag', array($this,'fixAmpServiceworker'), 10, 2);
-        wp_enqueue_script('mcw-amp-install-serviceworker');
+        echo '<script custom-element="amp-install-serviceworker" src="https://cdn.ampproject.org/v0/amp-install-serviceworker-0.1.js"></script>';
     }
 
     public function renderAMPSWElement(){
         echo '<amp-install-serviceworker src="'.$this->getSWUrl().'" layout="nodisplay"></amp-install-serviceworker>';
-    } */
+    }
     
     private function getSWUrl(){
         return add_query_arg( MCW_SW_QUERY_VAR, '1', trailingslashit( site_url() ) . 'index.php' );
