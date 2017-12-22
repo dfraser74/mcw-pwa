@@ -1,6 +1,6 @@
 <?php
 define( 'MCW_SW_QUERY_VAR', 'mcw_pwa_service_worker' );
-class MCW_PWA {
+class MCW_PWA_Service_Worker {
     
     private static $__instance = null;
 	/**
@@ -9,8 +9,8 @@ class MCW_PWA {
 	 * @return MCW_PWA instance
 	 */
 	public static function instance() {
-		if ( ! is_a( self::$__instance, 'MCW_PWA' ) ) {
-			self::$__instance = new MCW_PWA();
+		if ( ! is_a( self::$__instance, 'MCW_PWA_Service_Worker' ) ) {
+			self::$__instance = new MCW_PWA_Service_Worker();
 		}
 
 		return self::$__instance;
@@ -70,7 +70,7 @@ class MCW_PWA {
 
 		if ( $wp_query->get( MCW_SW_QUERY_VAR ) ) {
             header( 'Content-Type: application/javascript; charset=utf-8' );
-            echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/importScripts/workbox-sw.dev.v2.1.2.js');";
+            echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/importScripts/workbox-sw.prod.v2.1.2.js');";
 			echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
 			exit;
 		}

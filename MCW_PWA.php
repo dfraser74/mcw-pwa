@@ -30,10 +30,10 @@ defined( 'ABSPATH' ) or die( 'Nope, not accessing this' );
 define( 'MCW_PWA_URL',plugin_dir_url(__FILE__));
 define( 'MCW_PWA_DIR',plugin_dir_path(__FILE__));
 
-require_once(dirname(__FILE__).'/includes/MCW_PWA.php');
-MCW_PWA::instance();
+require_once(dirname(__FILE__).'/includes/MCW_PWA_Service_Worker.php');
+MCW_PWA_Service_Worker::instance();
 
-register_deactivation_hook( __FILE__, array(MCW_PWA::instance(),'flushRewriteRules' ));
+register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'flushRewriteRules' ));
 
 
 add_action('parse_query','mcw_init');
