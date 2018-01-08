@@ -4,7 +4,7 @@
 This plugin is developed to focus on enhancing the loading experiences with minimum configuration. 
 
 The plugin's current features:
-* use service worker to cache all static assets like images, JavaScripts, CSS styles, and fonts.
+* use service worker to cache all static assets like images, JavaScripts, CSS styles, and fonts. It use [Workbox](https://developers.google.com/web/tools/workbox/) as a library.
 * use Intersection Observer API to lazy load images on page.
 * make scripts loaded with async if no dependency found and defer if it has dependency like jQuery library. **This is a bit risky if themes or plugins not include the scripts with wp_enqueue_script function or not include dependency when they enqueue the script. Make sure you check there is no error on JavaScript console when you activate the plugin.**
 * install service worker if the website has AMP plugin running. AMP is a custom elements library that boost the website loading performance.
@@ -21,7 +21,8 @@ To install the plugin follow the steps
 5. Check with your Browser's DevTool to **make sure there is no JavaScript error in your JavaScript console.**
 
 ## Credits
-I use some plugins as my references to develop this plugin. Please check their amazing works gi
+I use some plugins as my references to develop this plugin. Please check their amazing works
 * [BJ Lazy Load](https://wordpress.org/plugins/bj-lazy-load/)
 * [Jetpack](https://wordpress.org/plugins/jetpack/) 
 * [Accelerated Mobile Pages - AMP](https://wordpress.org/plugins/amp/)
+* [Workbox](https://developers.google.com/web/tools/workbox/)
