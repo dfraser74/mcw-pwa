@@ -19,3 +19,9 @@ To install the plugin follow the steps
 3. Switch your terminal working directory to `mcw-pwa/scripts` and run command `npm install` to install the WorkBox library.
 4. Activate the plugin inside your WordPress Admin Panel on plugin section.
 5. Check with your Browser's DevTool to **make sure there is no JavaScript error in your JavaScript console.**
+
+## Credits
+I use some plugins as my references to develop this plugin. Please check their amazing works gi
+* [BJ Lazy Load](https://wordpress.org/plugins/bj-lazy-load/)
+* [Jetpack](https://wordpress.org/plugins/jetpack/) 
+* [Accelerated Mobile Pages - AMP](https://wordpress.org/plugins/amp/)
