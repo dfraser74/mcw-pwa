@@ -4,7 +4,7 @@ Plugin Name:  Minimum Configuration WordPress PWA
 Plugin URI:   https://github.com/tyohan/mcw-pwa
 Description:  WordPress plugin to optimize loading performance with minimum configuration using PWA approach
 Version:      0.1
-Author:       tyohan@gmail.com
+Author:       Yohan Totting
 Author URI:   https://tyohan.me
 License:      GPL2
 License URI:  https://www.gnu.org/licenses/gpl-2.0.html
@@ -30,8 +30,16 @@ defined( 'ABSPATH' ) or die( 'Nope, not accessing this' );
 define( 'MCW_PWA_URL',plugin_dir_url(__FILE__));
 define( 'MCW_PWA_DIR',plugin_dir_path(__FILE__));
 
-require_once(dirname(__FILE__).'/includes/MCW_PWA_Service_Worker.php');
-MCW_PWA_Service_Worker::instance();
+require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
+require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Settings.php');
+require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
+    
+
+MCW_PWA_Settings::instance();
+$serviceWorkerModule=MCW_PWA_Service_Worker::instance();
+$lazyLoadModule=MCW_PWA_LazyLoad::instance();
+$assetsModule=MCW_PWA_Assets::instance();
 
 register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'flushRewriteRules' ));
 
@@ -39,14 +47,18 @@ register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'
 add_action('parse_query','mcw_init');
 
 function mcw_init(){
-    require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
-    MCW_PWA_Assets::instance();
-
-    //Don't use lazy load when in AMP page
-    if(AMP_QUERY_VAR!==null && !get_query_var( AMP_QUERY_VAR, false )){
-        require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
-        MCW_PWA_LazyLoad::instance();
+    if(!is_admin()){
+        $serviceWorkerModule->initScripts();
+        $assetsModule->initLoader();
+        
+        //Don't use lazy load when in AMP page
+        if(AMP_QUERY_VAR!==null && !get_query_var( AMP_QUERY_VAR, false )){
+            $lazyLoadModule->initScripts();
+        }
     }
+    
+
+    
 }
 
 function deactivate_rules(){

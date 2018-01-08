@@ -19,13 +19,66 @@ class MCW_PWA_Assets{
 	}
 
 	protected function __construct() {
-		add_filter('script_loader_tag', array($this,'addDeferAsyncAttribute'), 10, 2);
-		// Remove WP Version From Styles	
-		add_filter( 'style_loader_src', array($this,'removeVersion'), 9999,1 );
-		// Remove WP Version From Scripts
-		add_filter( 'script_loader_src', array($this,'removeVersion'), 9999,1 );
+		add_action( 'admin_init', array($this,'settingsApiInit' ));
     }
 
+	public function initLoader(){
+		if(! is_admin()){
+			add_filter('script_loader_tag', array($this,'addDeferAsyncAttribute'), 10, 2);
+			// Remove WP Version From Styles	
+			add_filter( 'style_loader_src', array($this,'removeVersion'), 9999,1 );
+			// Remove WP Version From Scripts
+			add_filter( 'script_loader_src', array($this,'removeVersion'), 9999,1 );
+		}
+	}
+
+	public function settingsApiInit() {
+        // Add the section to reading settings so we can add our
+        // fields to it
+        add_settings_section(
+            'mcw_settings_assets',
+            'Async Defer Resources',
+            array($this,'sectionCallback'),
+            'mcw_setting_page'
+        );
+        
+        // Add the field with the names and function to use for our new
+        // settings, put it in our new section
+        add_settings_field(
+            'mcw_enable_assets',
+            'Enable Async and Defer Loading',
+            array($this,'settingCallback'),
+            'mcw_setting_page',
+            'mcw_settings_assets'
+        );
+    } 
+ 
+
+ 
+  
+    // ------------------------------------------------------------------
+    // Settings section callback function
+    // ------------------------------------------------------------------
+    //
+    // This function is needed if we added a new section. This function 
+    // will be run at the start of our section
+    //
+    
+    public function sectionCallback() {
+        echo '<p>By enable this async defer feature, you can boost your loading performance by optimize your critical resources.</p>';
+    }
+    
+    // ------------------------------------------------------------------
+    // Callback function for our example setting
+    // ------------------------------------------------------------------
+    //
+    // creates a checkbox true/false option. Other types are surely possible
+    //
+    
+    public function settingCallback() {
+        echo '<input name="mcw_assets" id="mcw_assets" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'mcw_assets' ), true ) . ' /> Enable';
+	}
+	
 	public function removeVersion($src){
 		// Function to remove version numbers
 		if ( strpos( $src, 'ver=' ) )

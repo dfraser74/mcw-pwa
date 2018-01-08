@@ -12,8 +12,65 @@ class MCW_PWA_LazyLoad {
 		}
 
 		return self::$__instance;
-	}
+    }
     
+    protected function __construct(){
+        add_action( 'admin_init', array($this,'settingsApiInit' ));
+    }
+
+    public function initScripts(){
+            add_action('wp_print_header_scripts', array($this,'addPolyfil'),999);
+            $this->filterLazyLoadImages();
+            wp_enqueue_script( 'wpwa_lazyload', MCW_PWA_URL. 'scripts/lazyload.js');
+    }
+
+    public function settingsApiInit() {
+        // Add the section to reading settings so we can add our
+        // fields to it
+        add_settings_section(
+            'mcw_settings_lazy_load',
+            'Lazy Loading',
+            array($this,'sectionCallback'),
+            'mcw_setting_page'
+        );
+        
+        // Add the field with the names and function to use for our new
+        // settings, put it in our new section
+        add_settings_field(
+            'mcw_enable_lazy_load',
+            'Enable Lazy Load',
+            array($this,'settingCallback'),
+            'mcw_setting_page',
+            'mcw_settings_lazy_load'
+        );
+    } 
+ 
+
+ 
+  
+    // ------------------------------------------------------------------
+    // Settings section callback function
+    // ------------------------------------------------------------------
+    //
+    // This function is needed if we added a new section. This function 
+    // will be run at the start of our section
+    //
+    
+    public function sectionCallback() {
+        echo '<p>By turn on this feature all images will be loaded if it shows on screen. Recommended to turn on this feature if you have a lot of images.</p>';
+    }
+    
+    // ------------------------------------------------------------------
+    // Callback function for our example setting
+    // ------------------------------------------------------------------
+    //
+    // creates a checkbox true/false option. Other types are surely possible
+    //
+    
+    public function settingCallback() {
+        echo '<input name="mcw_lazy_load" id="mcw_lazy_load" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'mcw_lazy_load' ), true ) . ' /> Enable Lazy Load';
+    }
+
     public function lazyloadImages($html) {
         $matches = array();
         
@@ -65,12 +122,6 @@ class MCW_PWA_LazyLoad {
         add_filter('the_content', array($this,'lazyloadImages') );
         add_filter('post_thumbnail_html',array($this,'lazyloadImages'));
         add_filter( 'get_avatar', array( $this, 'lazyloadImages' ), 11 );
-      }
-
-      private function __construct(){
-        add_action('wp_print_header_scripts', array($this,'addPolyfil'),999);
-        $this->filterLazyLoadImages();
-        wp_enqueue_script( 'wpwa_lazyload', MCW_PWA_URL. 'scripts/lazyload.js');
       }
 
       public function addPolyfil(){
