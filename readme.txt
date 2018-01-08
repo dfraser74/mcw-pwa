@@ -46,7 +46,7 @@ For repeat visits optimizing, it's only working on browsers that support service
 
 == Credits ==
 
-I use some plugins as my references to develop this plugin. Please check their amazing works 
+I use some plugins as my references to develop this plugin. Please check their amazing works gi
 * [BJ Lazy Load](https://wordpress.org/plugins/bj-lazy-load/)
 * [Jetpack](https://wordpress.org/plugins/jetpack/) 
 * [Accelerated Mobile Pages - AMP](https://wordpress.org/plugins/amp/)
