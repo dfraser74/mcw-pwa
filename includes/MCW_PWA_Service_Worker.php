@@ -1,6 +1,7 @@
 <?php
 define( 'MCW_SW_QUERY_VAR', 'mcw_pwa_service_worker' );
-class MCW_PWA_Service_Worker {
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
+class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     
     private static $__instance = null;
 	/**
@@ -12,13 +13,11 @@ class MCW_PWA_Service_Worker {
 		if ( ! is_a( self::$__instance, 'MCW_PWA_Service_Worker' ) ) {
 			self::$__instance = new MCW_PWA_Service_Worker();
 		}
-
 		return self::$__instance;
 	}
 
-	protected function __construct() {
-        
-        add_action( 'admin_init', array($this,'settingsApiInit' ));
+    protected function getKey(){
+        return 'mcw_enable_service_workers';
     }
 
     public function initScripts(){
@@ -33,6 +32,15 @@ class MCW_PWA_Service_Worker {
     }
 
     public function settingsApiInit() {
+        register_setting( 'mcw_settings_service_workers', 'mcw_enable_service_workers', 
+            array(
+                'type'=>'boolean',
+                'description'=>'Enable service workers',
+                'default'=>true,
+                //'sanitize_callback'=>array($this,'settingSanitize')
+                )
+        );
+        
         // Add the section to reading settings so we can add our
         // fields to it
         add_settings_section(
@@ -67,17 +75,7 @@ class MCW_PWA_Service_Worker {
     public function sectionCallback() {
         echo '<p>You can disable the features by toggle the settings below:</p>';
     }
-    
-    // ------------------------------------------------------------------
-    // Callback function for our example setting
-    // ------------------------------------------------------------------
-    //
-    // creates a checkbox true/false option. Other types are surely possible
-    //
-    
-    public function settingCallback() {
-        echo '<input name="mcw_service_worker" id="mcw_service_worker" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'mcw_service_worker' ), true ) . ' /> Enable Service Workers';
-    }
+
 
     public function registerQueryVar( $vars ) {
 		$vars[] = MCW_SW_QUERY_VAR;

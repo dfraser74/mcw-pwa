@@ -37,9 +37,9 @@ require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
     
 
 MCW_PWA_Settings::instance();
-$serviceWorkerModule=MCW_PWA_Service_Worker::instance();
-$lazyLoadModule=MCW_PWA_LazyLoad::instance();
-$assetsModule=MCW_PWA_Assets::instance();
+MCW_PWA_Service_Worker::instance();
+MCW_PWA_LazyLoad::instance();
+MCW_PWA_Assets::instance();
 
 register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'flushRewriteRules' ));
 
@@ -48,12 +48,13 @@ add_action('parse_query','mcw_init');
 
 function mcw_init(){
     if(!is_admin()){
-        $serviceWorkerModule->initScripts();
-        $assetsModule->initLoader();
+
+        MCW_PWA_Service_Worker::instance()->initScripts();
+        MCW_PWA_Assets::instance()->initLoader();
         
         //Don't use lazy load when in AMP page
         if(AMP_QUERY_VAR!==null && !get_query_var( AMP_QUERY_VAR, false )){
-            $lazyLoadModule->initScripts();
+            MCW_PWA_LazyLoad::instance()->initScripts();
         }
     }
     

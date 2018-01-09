@@ -1,6 +1,6 @@
 <?php
-
-class MCW_PWA_Assets{
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
+class MCW_PWA_Assets extends MCW_PWA_Module{
 	private static $__instance = null;
 	private $_scripts=[];
 	private $_styles=[];
@@ -18,8 +18,8 @@ class MCW_PWA_Assets{
 		return self::$__instance;
 	}
 
-	protected function __construct() {
-		add_action( 'admin_init', array($this,'settingsApiInit' ));
+    protected function getKey(){
+        return 'mcw_enable_assets';
     }
 
 	public function initLoader(){
@@ -33,6 +33,14 @@ class MCW_PWA_Assets{
 	}
 
 	public function settingsApiInit() {
+        register_setting( 'mcw_settings_assets', 'mcw_enable_assets', 
+        array(
+                'type'=>'boolean',
+                'description'=>'Enable Async Defer Assets Loading',
+                'default'=>true,
+                //'sanitize_callback'=>array($this,'settingSanitize')
+                )
+        );
         // Add the section to reading settings so we can add our
         // fields to it
         add_settings_section(
@@ -46,7 +54,7 @@ class MCW_PWA_Assets{
         // settings, put it in our new section
         add_settings_field(
             'mcw_enable_assets',
-            'Enable Async and Defer Loading',
+            'Enable Async Defer ',
             array($this,'settingCallback'),
             'mcw_setting_page',
             'mcw_settings_assets'
@@ -67,17 +75,6 @@ class MCW_PWA_Assets{
     public function sectionCallback() {
         echo '<p>By enable this async defer feature, you can boost your loading performance by optimize your critical resources.</p>';
     }
-    
-    // ------------------------------------------------------------------
-    // Callback function for our example setting
-    // ------------------------------------------------------------------
-    //
-    // creates a checkbox true/false option. Other types are surely possible
-    //
-    
-    public function settingCallback() {
-        echo '<input name="mcw_assets" id="mcw_assets" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'mcw_assets' ), true ) . ' /> Enable';
-	}
 	
 	public function removeVersion($src){
 		// Function to remove version numbers
@@ -109,10 +106,12 @@ class MCW_PWA_Assets{
 
     public function addDeferAsyncAttribute($tag,$handle){
         if($this->shouldDefer($handle)){
-            
-            return str_replace(' src', ' defer="defer" src', $tag);  
+            if(strpos($tag,'defer')===FALSE)
+                return str_replace(' src', ' defer="defer" src', $tag);  
         } 
-        return str_replace(' src', ' async="async" src', $tag);   
-          
+        if(strpos($tag,'async')===FALSE)
+            return str_replace(' src', ' async="async" src', $tag);   
+        
+        return $tag;
     }
 }

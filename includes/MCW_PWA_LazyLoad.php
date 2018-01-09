@@ -1,5 +1,7 @@
 <?php
-class MCW_PWA_LazyLoad {
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
+
+class MCW_PWA_LazyLoad extends MCW_PWA_Module{
     private static $__instance = null;
 	/**
 	 * Singleton implementation
@@ -13,18 +15,28 @@ class MCW_PWA_LazyLoad {
 
 		return self::$__instance;
     }
-    
-    protected function __construct(){
-        add_action( 'admin_init', array($this,'settingsApiInit' ));
+
+    protected function getKey(){
+        return 'mcw_enable_lazy_load';
     }
 
     public function initScripts(){
             add_action('wp_print_header_scripts', array($this,'addPolyfil'),999);
             $this->filterLazyLoadImages();
-            wp_enqueue_script( 'wpwa_lazyload', MCW_PWA_URL. 'scripts/lazyload.js');
+            wp_enqueue_script( 'mcw_lazyload', MCW_PWA_URL. 'scripts/lazyload.js');
     }
 
+
     public function settingsApiInit() {
+        register_setting( 'mcw_settings_lazy_load', 'mcw_enable_lazy_load', 
+            array(
+                'type'=>'boolean',
+                'description'=>'Enable Lazy Load',
+                'default'=>true,
+                //'sanitize_callback'=>array($this,'settingSanitize')
+                )
+        );
+        
         // Add the section to reading settings so we can add our
         // fields to it
         add_settings_section(
@@ -67,9 +79,6 @@ class MCW_PWA_LazyLoad {
     // creates a checkbox true/false option. Other types are surely possible
     //
     
-    public function settingCallback() {
-        echo '<input name="mcw_lazy_load" id="mcw_lazy_load" type="checkbox" value="1" class="code" ' . checked( 1, get_option( 'mcw_lazy_load' ), true ) . ' /> Enable Lazy Load';
-    }
 
     public function lazyloadImages($html) {
         $matches = array();
