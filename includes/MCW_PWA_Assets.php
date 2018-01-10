@@ -18,11 +18,11 @@ class MCW_PWA_Assets extends MCW_PWA_Module{
 		return self::$__instance;
 	}
 
-    protected function getKey(){
+    public function getKey(){
         return 'mcw_enable_assets';
     }
 
-	public function initLoader(){
+	public function initScripts(){
 		if(! is_admin()){
 			add_filter('script_loader_tag', array($this,'addDeferAsyncAttribute'), 10, 2);
 			// Remove WP Version From Styles	
@@ -33,48 +33,26 @@ class MCW_PWA_Assets extends MCW_PWA_Module{
 	}
 
 	public function settingsApiInit() {
-        register_setting( 'mcw_settings_assets', 'mcw_enable_assets', 
+        register_setting( MCW_PWA_OPTION, $this->getKey(), 
         array(
                 'type'=>'boolean',
                 'description'=>'Enable Async Defer Assets Loading',
-                'default'=>true,
+                'default'=>1,
                 //'sanitize_callback'=>array($this,'settingSanitize')
                 )
         );
-        // Add the section to reading settings so we can add our
-        // fields to it
-        add_settings_section(
-            'mcw_settings_assets',
-            'Async Defer Resources',
-            array($this,'sectionCallback'),
-            'mcw_setting_page'
-        );
+        
         
         // Add the field with the names and function to use for our new
         // settings, put it in our new section
         add_settings_field(
-            'mcw_enable_assets',
+            $this->getKey(),
             'Enable Async Defer ',
             array($this,'settingCallback'),
-            'mcw_setting_page',
-            'mcw_settings_assets'
+            MCW_PWA_SETTING_PAGE,
+            MCW_SECTION_PERFORMANCE
         );
     } 
- 
-
- 
-  
-    // ------------------------------------------------------------------
-    // Settings section callback function
-    // ------------------------------------------------------------------
-    //
-    // This function is needed if we added a new section. This function 
-    // will be run at the start of our section
-    //
-    
-    public function sectionCallback() {
-        echo '<p>By enable this async defer feature, you can boost your loading performance by optimize your critical resources.</p>';
-    }
 	
 	public function removeVersion($src){
 		// Function to remove version numbers

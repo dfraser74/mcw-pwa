@@ -12,70 +12,52 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
 	public static function instance() {
 		if ( ! is_a( self::$__instance, 'MCW_PWA_Service_Worker' ) ) {
 			self::$__instance = new MCW_PWA_Service_Worker();
-		}
+        }
+        
 		return self::$__instance;
 	}
+    protected function __construct() {
+        parent::__construct();
+        if($this->isEnable()){
+            add_action( 'init', array( self::$__instance, 'registerRewriteRule' ) );
+            add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
+            add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
+        }
+        
+    }
 
-    protected function getKey(){
+    public function getKey(){
         return 'mcw_enable_service_workers';
     }
 
     public function initScripts(){
         add_action( 'wp_print_footer_scripts', array($this,'registerSW'),1000);
-        add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
-        add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
-        add_action( 'init', array( $this, 'registerRewriteRule' ) );
-        
         //amp support
         add_action( 'amp_post_template_head', array( $this, 'renderAMPSWScript' ) );
         add_action( 'amp_post_template_footer', array( $this, 'renderAMPSWElement' ) );
     }
 
     public function settingsApiInit() {
-        register_setting( 'mcw_settings_service_workers', 'mcw_enable_service_workers', 
+        register_setting( MCW_PWA_OPTION, $this->getKey(), 
             array(
                 'type'=>'boolean',
                 'description'=>'Enable service workers',
-                'default'=>true,
+                'default'=>1,
                 //'sanitize_callback'=>array($this,'settingSanitize')
                 )
         );
         
-        // Add the section to reading settings so we can add our
-        // fields to it
-        add_settings_section(
-            'mcw_settings_service_workers',
-            'Service Workers',
-            array($this,'sectionCallback'),
-            'mcw_setting_page'
-        );
         
         // Add the field with the names and function to use for our new
         // settings, put it in our new section
         add_settings_field(
-            'mcw_enable_service_workers',
+            $this->getKey(),
             'Enable service workers',
             array($this,'settingCallback'),
-            'mcw_setting_page',
-            'mcw_settings_service_workers'
+            MCW_PWA_SETTING_PAGE,
+            MCW_SECTION_PWA
         );
     } 
- 
-
- 
-  
-    // ------------------------------------------------------------------
-    // Settings section callback function
-    // ------------------------------------------------------------------
-    //
-    // This function is needed if we added a new section. This function 
-    // will be run at the start of our section
-    //
-    
-    public function sectionCallback() {
-        echo '<p>You can disable the features by toggle the settings below:</p>';
-    }
-
 
     public function registerQueryVar( $vars ) {
 		$vars[] = MCW_SW_QUERY_VAR;

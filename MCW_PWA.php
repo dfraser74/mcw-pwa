@@ -29,6 +29,10 @@ along with Minimum Configuration WordPress PWA..
 defined( 'ABSPATH' ) or die( 'Nope, not accessing this' );
 define( 'MCW_PWA_URL',plugin_dir_url(__FILE__));
 define( 'MCW_PWA_DIR',plugin_dir_path(__FILE__));
+define('MCW_PWA_OPTION','mcw_option_group');
+define('MCW_SECTION_PERFORMANCE','mcw_option_performance');
+define('MCW_SECTION_PWA','mcw_option_pwa');
+define('MCW_PWA_SETTING_PAGE','mcw_setting_page');
 
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Settings.php');
@@ -42,24 +46,27 @@ MCW_PWA_LazyLoad::instance();
 MCW_PWA_Assets::instance();
 
 register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'flushRewriteRules' ));
+register_deactivation_hook(__FILE__,'reset_options');
 
+function reset_options(){
+    delete_option('mcw_enable_assets');
+    delete_option('mcw_enable_service_workers');
+    delete_option('mcw_enable_lazy_load');
+}
 
 add_action('parse_query','mcw_init');
 
 function mcw_init(){
     if(!is_admin()){
 
-        MCW_PWA_Service_Worker::instance()->initScripts();
-        MCW_PWA_Assets::instance()->initLoader();
+        MCW_PWA_Service_Worker::instance()->run();
+        MCW_PWA_Assets::instance()->run();
         
         //Don't use lazy load when in AMP page
         if(AMP_QUERY_VAR!==null && !get_query_var( AMP_QUERY_VAR, false )){
-            MCW_PWA_LazyLoad::instance()->initScripts();
+            MCW_PWA_LazyLoad::instance()->run();
         }
-    }
-    
-
-    
+    }    
 }
 
 function deactivate_rules(){

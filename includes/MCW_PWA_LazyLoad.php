@@ -16,7 +16,7 @@ class MCW_PWA_LazyLoad extends MCW_PWA_Module{
 		return self::$__instance;
     }
 
-    protected function getKey(){
+    public function getKey(){
         return 'mcw_enable_lazy_load';
     }
 
@@ -28,56 +28,25 @@ class MCW_PWA_LazyLoad extends MCW_PWA_Module{
 
 
     public function settingsApiInit() {
-        register_setting( 'mcw_settings_lazy_load', 'mcw_enable_lazy_load', 
+        register_setting(MCW_PWA_OPTION, $this->getKey(), 
             array(
                 'type'=>'boolean',
                 'description'=>'Enable Lazy Load',
-                'default'=>true,
-                //'sanitize_callback'=>array($this,'settingSanitize')
+                'default'=>1,
+                'sanitize_callback'=>array($this,'settingSanitize')
                 )
-        );
-        
-        // Add the section to reading settings so we can add our
-        // fields to it
-        add_settings_section(
-            'mcw_settings_lazy_load',
-            'Lazy Loading',
-            array($this,'sectionCallback'),
-            'mcw_setting_page'
         );
         
         // Add the field with the names and function to use for our new
         // settings, put it in our new section
         add_settings_field(
-            'mcw_enable_lazy_load',
+            $this->getKey(),
             'Enable Lazy Load',
             array($this,'settingCallback'),
-            'mcw_setting_page',
-            'mcw_settings_lazy_load'
+            MCW_PWA_SETTING_PAGE,
+            MCW_SECTION_PERFORMANCE
         );
     } 
- 
-
- 
-  
-    // ------------------------------------------------------------------
-    // Settings section callback function
-    // ------------------------------------------------------------------
-    //
-    // This function is needed if we added a new section. This function 
-    // will be run at the start of our section
-    //
-    
-    public function sectionCallback() {
-        echo '<p>By turn on this feature all images will be loaded if it shows on screen. Recommended to turn on this feature if you have a lot of images.</p>';
-    }
-    
-    // ------------------------------------------------------------------
-    // Callback function for our example setting
-    // ------------------------------------------------------------------
-    //
-    // creates a checkbox true/false option. Other types are surely possible
-    //
     
 
     public function lazyloadImages($html) {
