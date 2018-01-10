@@ -3,7 +3,7 @@
 Plugin Name:  Minimum Configuration WordPress PWA
 Plugin URI:   https://github.com/tyohan/mcw-pwa
 Description:  WordPress plugin to optimize loading performance with minimum configuration using PWA approach
-Version:      0.1
+Version:      0.1.1
 Author:       Yohan Totting
 Author URI:   https://tyohan.me
 License:      GPL2
