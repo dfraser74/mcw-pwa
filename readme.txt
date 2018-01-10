@@ -11,13 +11,8 @@ This plugin is developed to enhance the browsing experiences on WordPress site w
 
 == Description ==
 
-The plugin's current features:
-*   use service worker to cache all static assets like images, JavaScripts, CSS styles, and fonts.
-*   use Intersection Observer API to lazy load images on a page.
-*   make scripts loaded with async if no dependency found and defer if it has a dependency like jQuery library. **This is a bit risky if themes or plugins not include the scripts with wp_enqueue_script function or not include dependency when they enqueue the script. Make sure you check there is no error on JavaScript console when you activate the plugin.**
-*   install service worker if the website has AMP plugin running. AMP is a custom elements library that boost the website loading performance.
+This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images.
 
-**This is still in beta, so please don't put it in productions until you know what you're doing.**
 
 == Installation ==
 
@@ -27,6 +22,13 @@ The goal of this plugin is to give good loading experiences on WordPress site wi
 2. Activate the plugin through the 'Plugins' screen in WordPress
 
 ==Development==
+The plugin's trying to enhance the WordPress experiences through several components like:
+*   use service worker to cache all static assets like images, JavaScripts, CSS styles, and fonts.
+*   use Intersection Observer API to lazy load images on a page.
+*   make scripts loaded with async if no dependency found and defer if it has a dependency like jQuery library. **This is a bit risky if themes or plugins not include the scripts with wp_enqueue_script function or not include dependency when they enqueue the script. Make sure you check there is no error on JavaScript console when you activate the plugin.**
+*   install service worker if the website has AMP plugin running. AMP is a custom elements library that boost the website loading performance.
+
+**This is still in beta, so please don't put it in productions until you know what you're doing.**
 
 1. Clone the repo to a directory inside your `wp-content/plugins` directory by running command in your terminal `git clone https://github.com/tyohan/mcw-pwa.git mcw-pwa`
 2. Install NPM first because we need it to install Workbox library
