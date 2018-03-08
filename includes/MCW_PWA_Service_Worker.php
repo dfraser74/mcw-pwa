@@ -19,7 +19,7 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     protected function __construct() {
         parent::__construct();
         if($this->isEnable()){
-            add_action( 'init', array( self::$__instance, 'registerRewriteRule' ) );
+            add_action( 'init', array( $this, 'registerRewriteRule' ) );
             add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
             add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
         }

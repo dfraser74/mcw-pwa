@@ -3,7 +3,7 @@
 Plugin Name:  Minimum Configuration WordPress PWA
 Plugin URI:   https://github.com/tyohan/mcw-pwa
 Description:  WordPress plugin to optimize loading performance with minimum configuration using PWA approach
-Version:      0.1.1
+Version:      0.1.2
 Author:       Yohan Totting
 Author URI:   https://tyohan.me
 License:      GPL2
@@ -35,15 +35,18 @@ define('MCW_SECTION_PWA','mcw_option_pwa');
 define('MCW_PWA_SETTING_PAGE','mcw_setting_page');
 
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
+require_once(MCW_PWA_DIR.'/includes/performance/MCW_PWA_Performance.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Settings.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
-    
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Add_Homescreen.php');
 
 MCW_PWA_Settings::instance();
 MCW_PWA_Service_Worker::instance();
 MCW_PWA_LazyLoad::instance();
 MCW_PWA_Assets::instance();
+//MCW_PWA_Add_Homescreen::instance();
+MCW_PWA_Performance::instance();
 
 register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'flushRewriteRules' ));
 register_deactivation_hook(__FILE__,'reset_options');
@@ -52,6 +55,7 @@ function reset_options(){
     delete_option('mcw_enable_assets');
     delete_option('mcw_enable_service_workers');
     delete_option('mcw_enable_lazy_load');
+    delete_option('mcw_enable_performance');
 }
 
 add_action('parse_query','mcw_init');

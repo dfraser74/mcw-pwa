@@ -1,4 +1,5 @@
 <?php
+define( 'MCW_SETTING_URL', 'mcw_setting_page' );
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
@@ -74,18 +75,34 @@ class MCW_PWA_Settings {
             //add_settings_error( 'mcw_messages', 'mcw_messages', __( 'Settings Saved', 'mcw' ), 'updated' );
             
         }
+        
+        if( isset( $_GET[ 'tab' ] ) ) {
+            $active_tab = $_GET[ 'tab' ];
+        } // end if
         ?>
         <div class="wrap">
             <h1>Minimum Configuration WordPress PWA Settings</h1>
+            
             <?php 
                 // show error/update messages
                 settings_errors( 'mcw_messages' );
             ?>
+            <h2 class="nav-tab-wrapper">
+                <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=enable_options" class="nav-tab '.($active_tab == "enable_options" ? "nav-tab-active" : "").'">Enable Features</a>';?>
+                <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
+            </h2>
+
             <form method="post" action="options.php">
             <?php
-                // This prints out all hidden setting fields
-                settings_fields( MCW_PWA_OPTION);
-                do_settings_sections( MCW_PWA_SETTING_PAGE );
+                if( $active_tab == 'enable_options' ) {
+                    // This prints out all hidden setting fields
+                    settings_fields( MCW_PWA_OPTION);
+                    do_settings_sections( MCW_PWA_SETTING_PAGE );
+                } else {
+                    // This print out manifest settings
+                    
+                } // end if/else
+                
                 submit_button();
             ?>
             </form>

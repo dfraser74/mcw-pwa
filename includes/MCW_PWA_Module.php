@@ -17,6 +17,15 @@ abstract class MCW_PWA_Module{
             $this->initScripts();
     }
 
+    protected function settingsApiInit(){
+
+    }
+    
+    protected function initScript(){
+        //won't do anything unless overide 
+
+    }
+
     public function settingCallback() {
         
         if(get_option( $this->getKey())){
@@ -29,5 +38,9 @@ abstract class MCW_PWA_Module{
 
     public function isEnable(){
         return (int) get_option( $this->getKey(), 1 )===1;
+    }
+
+    public static function debug($msg){
+        echo '<script>console.log('.$msg.');</script>';
     }
 }
