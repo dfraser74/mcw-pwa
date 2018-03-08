@@ -28,7 +28,12 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 
 	public function __construct(){
         parent::__construct();
-        if($this->isEnable() && !is_admin() && !( $GLOBALS['pagenow'] === 'wp-login.php' )){
+        add_action('template_redirect',array($this,'run'));
+            
+    }
+
+    public function run(){
+        if($this->isEnable() && !is_admin() && !( $GLOBALS['pagenow'] === 'wp-login.php' ) && get_query_var( MCW_SW_QUERY_VAR, false )===false){
             ob_start();
             add_filter('final_output', function($output) {
                 if(!is_file(MCW_PWA_DIR.$this->getStylePath() && !is_file(MCW_PWA_DIR.$this->getScriptPath())))
@@ -36,7 +41,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
                 return $output;
             });
             
-           add_action('shutdown',function(){
+            add_action('shutdown',function(){
             $final = '';
 
             // We'll need to get the number of ob levels we're in, so that we can iterate over each, collecting
@@ -50,7 +55,6 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             echo apply_filters('final_output', $final);
            },0);
         }
-            
     }
 
 	public function settingsApiInit() {
@@ -113,6 +117,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         }
         
         $combinedStylesUrl=$this->combineAssetsContent($styleSources,MCW_PWA_DIR.$this->getStylePath());
+        $this->addSWPrecache($combinedStylesUrl);
         //add style to head
         $bundleStyle=$document->createElement('link');
         
@@ -132,12 +137,13 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             $src=$tag->getAttribute('src');
             if(!empty($src)){
                 array_unshift($scriptSources,$src);
-            }
-            $tag->parentNode->removeChild($tag);
+                $tag->parentNode->removeChild($tag);
+            } 
+            
         }
         
         $combinedScriptsUrl=$this->combineAssetsContent($scriptSources,MCW_PWA_DIR.$this->getScriptPath());
-
+        $this->addSWPrecache($combinedScriptsUrl);
         //preload bundle script
         $preload=$document->createElement('link');
         $preload->setAttribute('rel','preload');
@@ -148,10 +154,16 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         //add script to bottom body
         $bundleScript=$document->createElement('script','');
         $bundleScript->setAttribute('src',$combinedScriptsUrl);
+        
         $bundleScript->setAttribute('async','true');
-        $doc->getElementsByTagName('body')->item(0)->appendChild($bundleScript);
+        $head->appendChild($bundleScript);
         
         return $document->saveHTML();
+    }
+
+    protected function addSWPrecache($url){
+        require_once(MCW_PWA_DIR.'includes/MCW_PWA_Service_Worker.php');
+        return MCW_PWA_Service_Worker::instance()->addToPrecache($url);
     }
     private function getScriptUrl(){
         return MCW_PWA_URL.self::$_scriptPath.'/'.self::$_scriptName;

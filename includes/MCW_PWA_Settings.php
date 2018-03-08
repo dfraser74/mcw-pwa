@@ -78,6 +78,8 @@ class MCW_PWA_Settings {
         
         if( isset( $_GET[ 'tab' ] ) ) {
             $active_tab = $_GET[ 'tab' ];
+        } else {
+            $active_tab='enable_options';
         } // end if
         ?>
         <div class="wrap">
@@ -89,7 +91,7 @@ class MCW_PWA_Settings {
             ?>
             <h2 class="nav-tab-wrapper">
                 <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=enable_options" class="nav-tab '.($active_tab == "enable_options" ? "nav-tab-active" : "").'">Enable Features</a>';?>
-                <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
+                <?php  //echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
             </h2>
 
             <form method="post" action="options.php">

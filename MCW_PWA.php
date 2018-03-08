@@ -38,13 +38,13 @@ require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
 require_once(MCW_PWA_DIR.'/includes/performance/MCW_PWA_Performance.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Settings.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
-require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
-require_once(MCW_PWA_DIR.'includes/MCW_PWA_Add_Homescreen.php');
+//require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
+//require_once(MCW_PWA_DIR.'includes/MCW_PWA_Add_Homescreen.php');
 
 MCW_PWA_Settings::instance();
 MCW_PWA_Service_Worker::instance();
 MCW_PWA_LazyLoad::instance();
-MCW_PWA_Assets::instance();
+//MCW_PWA_Assets::instance();
 //MCW_PWA_Add_Homescreen::instance();
 MCW_PWA_Performance::instance();
 

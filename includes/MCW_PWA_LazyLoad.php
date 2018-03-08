@@ -31,7 +31,7 @@ class MCW_PWA_LazyLoad extends MCW_PWA_Module{
         register_setting(MCW_PWA_OPTION, $this->getKey(), 
             array(
                 'type'=>'boolean',
-                'description'=>'Enable Lazy Load',
+                'description'=>'Enable Lazy Load Images',
                 'default'=>1,
                 'sanitize_callback'=>array($this,'settingSanitize')
                 )
@@ -41,7 +41,7 @@ class MCW_PWA_LazyLoad extends MCW_PWA_Module{
         // settings, put it in our new section
         add_settings_field(
             $this->getKey(),
-            'Enable Lazy Load',
+            'Enable Lazy Load Images',
             array($this,'settingCallback'),
             MCW_PWA_SETTING_PAGE,
             MCW_SECTION_PERFORMANCE

@@ -1,9 +1,12 @@
 <?php
 define( 'MCW_SW_QUERY_VAR', 'mcw_pwa_service_worker' );
+define( 'MCW_PWA_SW_PRECACHE','mcw_pwa_precache');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     
     private static $__instance = null;
+    private $_precaches=[];
+
 	/**
 	 * Singleton implementation
 	 *
@@ -19,9 +22,11 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     protected function __construct() {
         parent::__construct();
         if($this->isEnable()){
+            $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
             add_action( 'init', array( $this, 'registerRewriteRule' ) );
             add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
             add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
+            $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
         }
         
     }
@@ -104,9 +109,21 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
 		if ( $wp_query->get( MCW_SW_QUERY_VAR ) ) {
             header( 'Content-Type: application/javascript; charset=utf-8' );
             echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/importScripts/workbox-sw.prod.v2.1.2.js');";
-			echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
+            echo "self.addEventListener('install', () => self.skipWaiting());
+            self.addEventListener('activate', () => self.clients.claim());
+            
+            const workboxSW = new WorkboxSW();
+            workboxSW.precache([".join(',',get_option(MCW_PWA_SW_PRECACHE))."]);\n";
+            echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
 			exit;
 		}
-	}
+    }
+    public function getPrecaches(){
+        return get_option(MCW_PWA_SW_PRECACHE);
+    }
+    public function addToPrecache($url){
+        $this->_precache[]=$url;
+        return update_option(MCW_PWA_SW_PRECACHE,$this->_precaches);
+    }
 
 }
