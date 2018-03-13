@@ -1,14 +1,19 @@
 <?php
+use MatthiasMullie\Minify;
+use bdk\CssXpath;
+
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 class MCW_PWA_Performance extends MCW_PWA_Module{
 	private static $__instance = null;
 	private $_scripts=[];
     private $_styles=[];
+    private $_currentUrl;
     
     public static $_scriptPath='assets/temp';
     public static $_scriptName='bundle.js';
     public static $_styleName='bundle.css';
 
+    
 	/**
 	 * Singleton implementation
 	 *
@@ -32,28 +37,59 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             
     }
 
+    public function getCachedPage($url){
+        return get_transient(md5($url));
+    }
+
+    public function cachePage($url,$html){
+        return set_transient(md5($url),$html,DAY_IN_SECONDS);
+    }
+
+    protected function getCurrentUrl(){
+        if($this->_currentUrl===null){
+            $permalinkStatus=get_option('permalink_structure');
+            if(empty($permalinkStatus)){
+                $this->_currentUrl="//" . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
+            } else {
+                $this->_currentUrl = home_url(add_query_arg(array(),$wp->request));
+            }
+        }
+        return $this->_currentUrl;
+        
+    }
+    
+
     public function run(){
         if($this->isEnable() && !is_admin() && !( $GLOBALS['pagenow'] === 'wp-login.php' ) && get_query_var( MCW_SW_QUERY_VAR, false )===false){
-            ob_start();
-            add_filter('final_output', function($output) {
-                if(!is_file(MCW_PWA_DIR.$this->getStylePath() && !is_file(MCW_PWA_DIR.$this->getScriptPath())))
+            $pageCached=$this->getCachedPage($this->getCurrentUrl());
+        
+            if($pageCached!==false){
+                echo $pageCached;
+                echo '<!-- cached version -->';
+                die;
+            } else {
+                ob_start();
+                add_filter('final_output', function($output) {
                     $output=$this->modifyBuffer($output);
-                return $output;
-            });
-            
-            add_action('shutdown',function(){
-            $final = '';
+                    $this->cachePage($this->getCurrentUrl(),$output);
+                    return $output;
+                });
+                
+                add_action('shutdown',function(){
+                    $final = '';
 
-            // We'll need to get the number of ob levels we're in, so that we can iterate over each, collecting
-            // that buffer's output into the final output.
-            $levels = ob_get_level();
-    
-            for ($i = 0; $i < $levels; $i++) {
-                $final .= ob_get_clean();
+                    // We'll need to get the number of ob levels we're in, so that we can iterate over each, collecting
+                    // that buffer's output into the final output.
+                    $levels = ob_get_level();
+            
+                    for ($i = 0; $i < $levels; $i++) {
+                        $final .= ob_get_clean();
+                    }
+                    // Apply any filters to the final output
+                    echo apply_filters('final_output', $final);
+                },0);
             }
-            // Apply any filters to the final output
-            echo apply_filters('final_output', $final);
-           },0);
+            
         }
     }
 
@@ -84,12 +120,11 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 			require_once dirname( __FILE__ ) . '/libs/HTML.php';
         }
 
-        $content=$this->combineAssets($content);
-        return $content;
-        //return Minify_HTML::minify( $content );
+        $content=$this->optimizeAssets($content);
+        return Minify_HTML::minify( $content );
     }
 
-    protected function combineAssets($content){
+    protected function optimizeAssets($content){
         // do combining and replace scripts with one combined asset for JS and CSS
         $document = new DOMDocument();
         // Ensure UTF-8 is respected by using 'mb_convert_encoding'
@@ -116,13 +151,18 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             
         }
         
-        $combinedStylesUrl=$this->combineAssetsContent($styleSources,MCW_PWA_DIR.$this->getStylePath());
-        $this->addSWPrecache($combinedStylesUrl);
+        $combinedStyles=$this->combineAssetsContent($styleSources);
+        $combinedStyles=$this->optimizeCSS($combinedStyles,$content);
+        //$combinedStyles=$this->minify($combinedStyles,'css');
+        //$this->addSWPrecache($combinedStylesUrl);
+        
+        //$bundleStyle=$document->createElement('style',$combinedStyles);
+        
         //add style to head
         $bundleStyle=$document->createElement('link');
-        
         $bundleStyle->setAttribute('rel','stylesheet');
-        $bundleStyle->setAttribute('href',$combinedStylesUrl);
+        //$scriptPath=MCW_PWA_DIR.$this->getStylePath();
+        $bundleStyle->setAttribute('href',MCW_PWA_URL.$this->getStylePath());
         $head=$doc->getElementsByTagName('head')->item(0);
         $head->appendChild($bundleStyle);
         
@@ -142,14 +182,11 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             
         }
         
-        $combinedScriptsUrl=$this->combineAssetsContent($scriptSources,MCW_PWA_DIR.$this->getScriptPath());
-        $this->addSWPrecache($combinedScriptsUrl);
-        //preload bundle script
-        $preload=$document->createElement('link');
-        $preload->setAttribute('rel','preload');
-        $preload->setAttribute('as','script');
-        $preload->setAttribute('href',$combinedScriptsUrl);
-        $head->insertBefore($preload,$head->firstChild);
+        $combinedScripts=$this->combineAssetsContent($scriptSources);
+        $scriptPath=MCW_PWA_DIR.$this->getScriptPath();
+        $combinedScripts=$this->minify($combinedScripts,'js',$scriptPath);
+        $combinedScriptsUrl=$this->getBundledUrl($scriptPath);
+        
 
         //add script to bottom body
         $bundleScript=$document->createElement('script','');
@@ -186,7 +223,32 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         return self::$_scriptPath.'/'.self::$_scriptName;
     }
 
-    protected function combineAssetsContent($assets,$saveToPath){
+    protected function minify($combinedAssets,$type,$saveToPath=null){
+        if($type==='css'){
+            $minifier = new Minify\CSS();
+            $minifier->setMaxImportSize(100);
+            $minifier->setImportExtensions(array(
+                'woff' => 'application/font-woff',
+                'ttf' => 'application/font-ttf',
+                'eot' => 'application/vnd.ms-fontobject',
+                'otf' => 'application/font-otf',
+                'svg' => 'image/svg+xml',
+            ));
+        } else {
+            $minifier = new Minify\JS();
+        }
+        $minifier->add($combinedAssets);
+        if($saveToPath!==null)
+            return $minifier->minify($saveToPath);
+        else
+            return $minifier->minify();
+    }
+
+    protected function getBundledUrl($path){
+        return MCW_PWA_URL.str_replace(MCW_PWA_DIR,'',$path);
+    }
+
+    protected function combineAssetsContent($assets){
         $combinedAssets='';
         foreach ($assets as $url) {
             $path=str_replace(site_url(),'',$url);
@@ -195,9 +257,46 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             }
             $combinedAssets.= file_get_contents($path);
         }
-        file_put_contents($saveToPath,$combinedAssets);
-        return MCW_PWA_URL.str_replace(MCW_PWA_DIR,'',$saveToPath);
+        return $combinedAssets;
     }
+
+    
+    protected function optimizeCSS($css,$html){
+        $cssParser=new Sabberworm\CSS\Parser($css);
+        $styles = $cssParser->parse();
+        foreach($styles->getAllRuleSets() as $oRuleSet) {
+            if($oRuleSet instanceof Sabberworm\CSS\RuleSet\AtRuleSet){
+                
+                if($oRuleSet->atRuleName()==='font-face'){
+                    $fontDisplay=new Sabberworm\CSS\Rule\Rule('font-display');
+                    $fontDisplay->setValue(new Sabberworm\CSS\Value\CSSString('fallback',0,false));
+                    $oRuleSet->addRule($fontDisplay);
+                }
+            } 
+            //skip this to inline style
+            // else if($oRuleSet instanceof Sabberworm\CSS\RuleSet\DeclarationBlock){
+                
+            //     foreach ($oRuleSet->getSelectors() as $selectors) {
+            //         $ruleUsed=false;
+            //         foreach($selectors as $selector){
+            //             $query=\bdk\CssXpath\CssSelect::select($html,$selector);
+            //             if(count($query)>0){
+            //                 $ruleUsed=true;
+            //                 break;
+            //             } else {
+            //                // echo $selector;
+            //                 //$oRuleSet->removeSelector($selector);die();
+            //             }
+            //         }
+            //         if($ruleUsed===false){
+            //             $styles->remove($oRuleSet);
+            //         }
+            //     }
+            // }
+        }
+        return $styles->render();
+    }
+    
 
     
     

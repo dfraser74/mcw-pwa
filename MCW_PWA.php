@@ -34,6 +34,7 @@ define('MCW_SECTION_PERFORMANCE','mcw_option_performance');
 define('MCW_SECTION_PWA','mcw_option_pwa');
 define('MCW_PWA_SETTING_PAGE','mcw_setting_page');
 
+require_once(MCW_PWA_DIR . '/vendor/autoload.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
 require_once(MCW_PWA_DIR.'/includes/performance/MCW_PWA_Performance.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Settings.php');
@@ -46,7 +47,7 @@ MCW_PWA_Service_Worker::instance();
 MCW_PWA_LazyLoad::instance();
 //MCW_PWA_Assets::instance();
 //MCW_PWA_Add_Homescreen::instance();
-MCW_PWA_Performance::instance();
+
 
 register_deactivation_hook( __FILE__, array(MCW_PWA_Service_Worker::instance(),'flushRewriteRules' ));
 register_deactivation_hook(__FILE__,'reset_options');
@@ -69,6 +70,7 @@ function mcw_init(){
         //Don't use lazy load when in AMP page
         if(AMP_QUERY_VAR!==null && !get_query_var( AMP_QUERY_VAR, false )){
             MCW_PWA_LazyLoad::instance()->run();
+            MCW_PWA_Performance::instance();
         }
     }    
 }
