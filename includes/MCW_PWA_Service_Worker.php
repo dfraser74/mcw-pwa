@@ -1,9 +1,12 @@
 <?php
 define( 'MCW_SW_QUERY_VAR', 'mcw_pwa_service_worker' );
+define( 'MCW_PWA_SW_PRECACHE','mcw_pwa_precache');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     
     private static $__instance = null;
+    private $_precaches=[];
+
 	/**
 	 * Singleton implementation
 	 *
@@ -12,70 +15,54 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
 	public static function instance() {
 		if ( ! is_a( self::$__instance, 'MCW_PWA_Service_Worker' ) ) {
 			self::$__instance = new MCW_PWA_Service_Worker();
-		}
+        }
+        
 		return self::$__instance;
 	}
+    protected function __construct() {
+        parent::__construct();
+        if($this->isEnable()){
+            $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
+            add_action( 'init', array( $this, 'registerRewriteRule' ) );
+            add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
+            add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
+            $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
+        }
+        
+    }
 
-    protected function getKey(){
+    public function getKey(){
         return 'mcw_enable_service_workers';
     }
 
     public function initScripts(){
         add_action( 'wp_print_footer_scripts', array($this,'registerSW'),1000);
-        add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
-        add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
-        add_action( 'init', array( $this, 'registerRewriteRule' ) );
-        
         //amp support
         add_action( 'amp_post_template_head', array( $this, 'renderAMPSWScript' ) );
         add_action( 'amp_post_template_footer', array( $this, 'renderAMPSWElement' ) );
     }
 
     public function settingsApiInit() {
-        register_setting( 'mcw_settings_service_workers', 'mcw_enable_service_workers', 
+        register_setting( MCW_PWA_OPTION, $this->getKey(), 
             array(
                 'type'=>'boolean',
                 'description'=>'Enable service workers',
-                'default'=>true,
+                'default'=>1,
                 //'sanitize_callback'=>array($this,'settingSanitize')
                 )
         );
         
-        // Add the section to reading settings so we can add our
-        // fields to it
-        add_settings_section(
-            'mcw_settings_service_workers',
-            'Service Workers',
-            array($this,'sectionCallback'),
-            'mcw_setting_page'
-        );
         
         // Add the field with the names and function to use for our new
         // settings, put it in our new section
         add_settings_field(
-            'mcw_enable_service_workers',
+            $this->getKey(),
             'Enable service workers',
             array($this,'settingCallback'),
-            'mcw_setting_page',
-            'mcw_settings_service_workers'
+            MCW_PWA_SETTING_PAGE,
+            MCW_SECTION_PWA
         );
     } 
- 
-
- 
-  
-    // ------------------------------------------------------------------
-    // Settings section callback function
-    // ------------------------------------------------------------------
-    //
-    // This function is needed if we added a new section. This function 
-    // will be run at the start of our section
-    //
-    
-    public function sectionCallback() {
-        echo '<p>You can disable the features by toggle the settings below:</p>';
-    }
-
 
     public function registerQueryVar( $vars ) {
 		$vars[] = MCW_SW_QUERY_VAR;
@@ -122,9 +109,21 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
 		if ( $wp_query->get( MCW_SW_QUERY_VAR ) ) {
             header( 'Content-Type: application/javascript; charset=utf-8' );
             echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/importScripts/workbox-sw.prod.v2.1.2.js');";
-			echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
+            echo "self.addEventListener('install', () => self.skipWaiting());
+            self.addEventListener('activate', () => self.clients.claim());
+            
+            const workboxSW = new WorkboxSW();
+            workboxSW.precache([".join(',',get_option(MCW_PWA_SW_PRECACHE))."]);\n";
+            echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
 			exit;
 		}
-	}
+    }
+    public function getPrecaches(){
+        return get_option(MCW_PWA_SW_PRECACHE);
+    }
+    public function addToPrecache($url){
+        $this->_precache[]=$url;
+        return update_option(MCW_PWA_SW_PRECACHE,$this->_precaches);
+    }
 
 }

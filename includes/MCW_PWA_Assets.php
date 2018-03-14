@@ -18,63 +18,43 @@ class MCW_PWA_Assets extends MCW_PWA_Module{
 		return self::$__instance;
 	}
 
-    protected function getKey(){
+    public function getKey(){
         return 'mcw_enable_assets';
     }
 
-	public function initLoader(){
+	public function initScripts(){
 		if(! is_admin()){
 			add_filter('script_loader_tag', array($this,'addDeferAsyncAttribute'), 10, 2);
 			// Remove WP Version From Styles	
 			add_filter( 'style_loader_src', array($this,'removeVersion'), 9999,1 );
 			// Remove WP Version From Scripts
-			add_filter( 'script_loader_src', array($this,'removeVersion'), 9999,1 );
+            add_filter( 'script_loader_src', array($this,'removeVersion'), 9999,1 );
+            
+            $this->disableEmojis();
 		}
 	}
 
 	public function settingsApiInit() {
-        register_setting( 'mcw_settings_assets', 'mcw_enable_assets', 
+        register_setting( MCW_PWA_OPTION, $this->getKey(), 
         array(
                 'type'=>'boolean',
                 'description'=>'Enable Async Defer Assets Loading',
-                'default'=>true,
+                'default'=>1,
                 //'sanitize_callback'=>array($this,'settingSanitize')
                 )
         );
-        // Add the section to reading settings so we can add our
-        // fields to it
-        add_settings_section(
-            'mcw_settings_assets',
-            'Async Defer Resources',
-            array($this,'sectionCallback'),
-            'mcw_setting_page'
-        );
+        
         
         // Add the field with the names and function to use for our new
         // settings, put it in our new section
         add_settings_field(
-            'mcw_enable_assets',
+            $this->getKey(),
             'Enable Async Defer ',
             array($this,'settingCallback'),
-            'mcw_setting_page',
-            'mcw_settings_assets'
+            MCW_PWA_SETTING_PAGE,
+            MCW_SECTION_PERFORMANCE
         );
     } 
- 
-
- 
-  
-    // ------------------------------------------------------------------
-    // Settings section callback function
-    // ------------------------------------------------------------------
-    //
-    // This function is needed if we added a new section. This function 
-    // will be run at the start of our section
-    //
-    
-    public function sectionCallback() {
-        echo '<p>By enable this async defer feature, you can boost your loading performance by optimize your critical resources.</p>';
-    }
 	
 	public function removeVersion($src){
 		// Function to remove version numbers
@@ -114,4 +94,52 @@ class MCW_PWA_Assets extends MCW_PWA_Module{
         
         return $tag;
     }
+
+    public function disableEmojis() {
+		remove_action( 'wp_head', 'print_emoji_detection_script', 7 );
+		remove_action( 'admin_print_scripts', 'print_emoji_detection_script' );
+		remove_action( 'embed_head', 'print_emoji_detection_script', 7 );
+
+		remove_action( 'wp_print_styles', 'print_emoji_styles' );
+		remove_action( 'admin_print_styles', 'print_emoji_styles' );
+
+		remove_filter( 'the_content_feed', 'wp_staticize_emoji' );
+		remove_filter( 'comment_text_rss', 'wp_staticize_emoji' );
+		remove_filter( 'wp_mail', 'wp_staticize_emoji_for_email' );
+
+		add_filter( 'tiny_mce_plugins', array( $this, 'disableEmojiTinymce' ) );
+		add_filter( 'wp_resource_hints', array( $this, 'disableEmojisRemoveDNSPrefetch' ), 10, 2 );
+    }
+    
+    /**
+	 * Filter function used to remove the tinymce emoji plugin.
+	 *
+	 * @param array $plugins
+	 * @return array Difference betwen the two arrays
+	 */
+	public function disableEmojiTinymce( $plugins ) {
+		if ( is_array( $plugins ) ) {
+			return array_diff( $plugins, array( 'wpemoji' ) );
+		} else {
+			return array();
+		}
+	}
+
+	/**
+	 * Remove emoji CDN hostname from DNS prefetching hints.
+	 *
+	 * @param array $urls URLs to print for resource hints.
+	 * @param string $relation_type The relation type the URLs are printed for.
+	 * @return array Difference betwen the two arrays.
+	 */
+	public function disableEmojisRemoveDNSPrefetch( $urls, $relation_type ) {
+		if ( 'dns-prefetch' == $relation_type ) {
+			/** This filter is documented in wp-includes/formatting.php */
+			$emoji_svg_url = apply_filters( 'emoji_svg_url', 'https://s.w.org/images/core/emoji/2/svg/' );
+
+			$urls = array_diff( $urls, array( $emoji_svg_url ) );
+		}
+
+		return $urls;
+	}
 }

@@ -1,4 +1,9 @@
 <?php
+define( 'MCW_SETTING_URL', 'mcw_setting_page' );
+require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
+require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
+
 class MCW_PWA_Settings {
 
     private static $__instance = null;
@@ -17,10 +22,34 @@ class MCW_PWA_Settings {
 
 	protected function __construct() {
         add_action( 'admin_menu', array($this,'addSettingMenu'));
+        add_action('admin_init',array($this,'addSettingSections'));
     }
 
-    
-    
+    public function addSettingSections(){
+        // Add the section to reading settings so we can add our
+        // fields to it
+        add_settings_section(
+            MCW_SECTION_PERFORMANCE,
+            'Performance',
+            array($this,'sectionPerformance'),
+            MCW_PWA_SETTING_PAGE
+        );
+
+        add_settings_section(
+            MCW_SECTION_PWA,
+            'Progressive Web App (PWA)',
+            array($this,'sectionPWA'),
+            MCW_PWA_SETTING_PAGE
+        );
+    }
+    public function sectionPerformance() {
+        echo '<p>Adjust setting below to boost your site performance:</p>';
+    }
+
+    public function sectionPWA() {
+        echo '<p>Adjust setting below enhance your site experiences:</p>';
+    }
+
     public function addSettingMenu(){
         add_options_page(
             'Setting for Minimum Configuration PWA', 
@@ -46,20 +75,36 @@ class MCW_PWA_Settings {
             //add_settings_error( 'mcw_messages', 'mcw_messages', __( 'Settings Saved', 'mcw' ), 'updated' );
             
         }
+        
+        if( isset( $_GET[ 'tab' ] ) ) {
+            $active_tab = $_GET[ 'tab' ];
+        } else {
+            $active_tab='enable_options';
+        } // end if
         ?>
         <div class="wrap">
             <h1>Minimum Configuration WordPress PWA Settings</h1>
+            
             <?php 
                 // show error/update messages
                 settings_errors( 'mcw_messages' );
             ?>
+            <h2 class="nav-tab-wrapper">
+                <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=enable_options" class="nav-tab '.($active_tab == "enable_options" ? "nav-tab-active" : "").'">Enable Features</a>';?>
+                <?php  //echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
+            </h2>
+
             <form method="post" action="options.php">
             <?php
-                // This prints out all hidden setting fields
-                settings_fields( 'mcw_settings_assets' );
-                settings_fields( 'mcw_settings_lazy_load' );
-                settings_fields( 'mcw_settings_service_workers' );
-                do_settings_sections( 'mcw_setting_page' );
+                if( $active_tab == 'enable_options' ) {
+                    // This prints out all hidden setting fields
+                    settings_fields( MCW_PWA_OPTION);
+                    do_settings_sections( MCW_PWA_SETTING_PAGE );
+                } else {
+                    // This print out manifest settings
+                    
+                } // end if/else
+                
                 submit_button();
             ?>
             </form>
@@ -67,16 +112,5 @@ class MCW_PWA_Settings {
         <?php
     }
     
-  
-    // ------------------------------------------------------------------
-    // Settings section callback function
-    // ------------------------------------------------------------------
-    //
-    // This function is needed if we added a new section. This function 
-    // will be run at the start of our section
-    //
     
-    public function sectionCallback() {
-        echo '<p>You can disable the features by toggle the settings below:</p>';
-    }
 }

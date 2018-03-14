@@ -1,8 +1,3 @@
-self.addEventListener('install', () => self.skipWaiting());
-self.addEventListener('activate', () => self.clients.claim());
-
-const workboxSW = new WorkboxSW();
-
 workboxSW.router.registerRoute(/wp-admin(.*)|(.*)preview=true(.*)/,
     workboxSW.strategies.networkOnly()
 );
