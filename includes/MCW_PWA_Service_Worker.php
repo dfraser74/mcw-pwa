@@ -22,11 +22,17 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     protected function __construct() {
         parent::__construct();
         if($this->isEnable()){
+<<<<<<< HEAD
             $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
             add_action( 'init', array( $this, 'registerRewriteRule' ) );
             add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
             add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
             $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
+=======
+            add_action( 'init', array( self::$__instance, 'registerRewriteRule' ) );
+            add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
+            add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
+>>>>>>> 625d923cc4162820d864e5fcac341a133ae12605
         }
         
     }

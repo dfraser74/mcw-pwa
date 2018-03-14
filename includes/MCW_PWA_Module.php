@@ -17,6 +17,7 @@ abstract class MCW_PWA_Module{
             $this->initScripts();
     }
 
+<<<<<<< HEAD
     protected function settingsApiInit(){
 
     }
@@ -26,6 +27,8 @@ abstract class MCW_PWA_Module{
 
     }
 
+=======
+>>>>>>> 625d923cc4162820d864e5fcac341a133ae12605
     public function settingCallback() {
         
         if(get_option( $this->getKey())){
@@ -39,8 +42,11 @@ abstract class MCW_PWA_Module{
     public function isEnable(){
         return (int) get_option( $this->getKey(), 1 )===1;
     }
+<<<<<<< HEAD
 
     public static function debug($msg){
         echo '<script>console.log('.$msg.');</script>';
     }
+=======
+>>>>>>> 625d923cc4162820d864e5fcac341a133ae12605
 }

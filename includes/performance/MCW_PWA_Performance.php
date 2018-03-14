@@ -59,16 +59,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         
     }
     
-    public function getCacheKey(){
-        if(is_home())
-            return 'home';
-        else if(is_front_page())
-            return 'front';
-        else if(is_front_page() && is_home() )
-            return 'blog';
-        else if(is_category())
-            return 'cat-'.get_category();
-    }
+    
 
     public function run(){
         if($this->isEnable() && !is_admin() && !( $GLOBALS['pagenow'] === 'wp-login.php' ) && get_query_var( MCW_SW_QUERY_VAR, false )===false){
