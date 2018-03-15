@@ -173,11 +173,6 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     }
 
 	public function modifyBuffer($content) {        
-    //    return  Minify_HTML::minify($content,
-    //               array(
-    //                 //'jsMinifier' => array('JS\JShrink', 'minify'),
-    //                 'cssMinifier' => array('Minify_CSSmin', 'minify')
-    //               ));
                   return $this->optimizeAssets($content);
         // return Minify_HTML::minify( $this->optimizeAssets($content) );
     }
@@ -267,7 +262,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         return MCW_PWA_URL.self::$_scriptPath.'/'.self::$_scriptName;
     }
 
-    private function getAssetsPath(){
+    public function getAssetsPath(){
         $path=MCW_PWA_DIR.self::$_scriptPath;
         if(!is_dir($path)){
             mkdir($path);
