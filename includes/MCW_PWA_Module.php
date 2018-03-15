@@ -21,9 +21,8 @@ abstract class MCW_PWA_Module{
 
     }
     
-    protected function initScript(){
+    public function initScript(){
         //won't do anything unless overide 
-
     }
 
     public function settingCallback() {

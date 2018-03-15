@@ -39,4 +39,5 @@ node_modules/
 
 # ignore composer dependency directories
 vendor/
+assets/temp
 composer.lock

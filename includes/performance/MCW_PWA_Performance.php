@@ -2,6 +2,7 @@
 use MatthiasMullie\Minify;
 use bdk\CssXpath;
 
+define( 'MCW_CACHE_PREFIX','mcw-');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 class MCW_PWA_Performance extends MCW_PWA_Module{
 	private static $__instance = null;
@@ -34,16 +35,41 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 
 	public function __construct(){
         parent::__construct();
+        add_action('save_post',array($this,'deletePostCache'));
+    }
+
+    public function initScript(){
         add_action('template_redirect',array($this,'run'));
-            
     }
 
-    public function getCachedPage($url){
-        return get_transient(md5($url));
+    public function deletePostCache($postID){
+        $post=get_post($postID);
+        $this->removeMainCaches();
+        $taxonomies=get_object_taxonomies($post);
+        foreach($taxonomies as $taxonomy=>$obj){
+            $terms=get_terms($taxonomy);
+            foreach($terms as $term){
+                $this->removeTaxonomyCache($term->term_id);
+            }
+        }
+
+        if(wp_is_post_revision( $post_id )){
+            delete_transient(MCW_CACHE_PREFIX.'post-'.$post->ID);
+        }
+           
     }
 
-    public function cachePage($url,$html){
-        return set_transient(md5($url),$html,DAY_IN_SECONDS);
+    protected function removeTaxonomyCache($id){
+        return delete_transient(MCW_CACHE_PREFIX.'term-'.$id);
+    }
+
+    public function getCachedPage($key){
+        // return false;
+        return get_transient($key);
+    }
+
+    public function cachePage($key,$html){
+        return set_transient($key,$html,DAY_IN_SECONDS);
     }
 
     protected function getCurrentUrl(){
@@ -56,43 +82,34 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             }
         }
         return $this->_currentUrl;
-        
     }
     
-    
+    public function removeMainCaches(){
+        delete_transient(MCW_CACHE_PREFIX.'home');
+        delete_transient(MCW_CACHE_PREFIX.'front');
+        delete_transient(MCW_CACHE_PREFIX.'blog');
+    }
 
-    public function run(){
-        if($this->isEnable() && !is_admin() && !( $GLOBALS['pagenow'] === 'wp-login.php' ) && get_query_var( MCW_SW_QUERY_VAR, false )===false){
-            $pageCached=$this->getCachedPage($this->getCurrentUrl());
-        
-            if($pageCached!==false){
-                echo $pageCached;
-                echo '<!-- cached version -->';
-                die;
-            } else {
-                ob_start();
-                add_filter('final_output', function($output) {
-                    $output=$this->modifyBuffer($output);
-                    $this->cachePage($this->getCurrentUrl(),$output);
-                    return $output;
-                });
-                
-                add_action('shutdown',function(){
-                    $final = '';
-
-                    // We'll need to get the number of ob levels we're in, so that we can iterate over each, collecting
-                    // that buffer's output into the final output.
-                    $levels = ob_get_level();
-            
-                    for ($i = 0; $i < $levels; $i++) {
-                        $final .= ob_get_clean();
-                    }
-                    // Apply any filters to the final output
-                    echo apply_filters('final_output', $final);
-                },0);
+    public function getCacheKeyOnRequest(){
+        $queryObj=get_queried_object();
+        if($this->_cacheKey===null){
+            if(is_home()){
+                $this->_cacheKey = MCW_CACHE_PREFIX.'home';
+            } elseif(is_front_page()){
+                $this->_cacheKey = MCW_CACHE_PREFIX.'front';
+            } elseif(is_front_page() && is_home() ) {
+                $this->_cacheKey = MCW_CACHE_PREFIX.'blog';
+            } elseif ( is_category() || is_tag() || is_tax() ) {
+                $this->_cacheKey=MCW_CACHE_PREFIX.'term-'.$queryObj->term_id;
+            } elseif ( is_post_type_archive()  ) {
+                $this->_cacheKey=MCW_CACHE_PREFIX.'posts-'.sanitize_key($queryObj->name);
+            } elseif ( is_singular() ) {
+                $this->_cacheKey=MCW_CACHE_PREFIX.'post-'.$queryObj->ID;
+            } elseif ( is_author()  ) {
+                $this->_cacheKey=MCW_CACHE_PREFIX.'author-'.$queryObj->ID;
             }
-            
         }
+        return $this->_cacheKey;
     }
 
 	public function settingsApiInit() {
@@ -117,16 +134,56 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         );
     } 
 
-	public function modifyBuffer( $content ) {
-		if ( ! class_exists( 'Minify_HTML' ) ) {
-			require_once dirname( __FILE__ ) . '/libs/HTML.php';
+    public function run(){
+        add_action('template_redirect',array($this,'renderPage'));
+    }
+    
+    public function renderPage(){
+        if(!is_admin() && !( $GLOBALS['pagenow'] === 'wp-login.php' ) && get_query_var( MCW_SW_QUERY_VAR, false )===false){
+            $pageCached=$this->getCachedPage($this->getCacheKeyOnRequest());
+            if($pageCached!==false){
+                echo $pageCached;
+                echo '<!-- cached version -->';
+                die;
+            } else {
+                ob_start();
+                
+                add_filter('final_output', function($output) {
+                    $output=$this->modifyBuffer($output);
+                    $this->cachePage($this->getCacheKeyOnRequest(),$output);
+                    $output.= '<!-- non cached version -->';
+                    return $output;
+                });
+               // ob_start( array( $this, 'endBufferHtml' ) );
+                add_action('shutdown',function(){
+                    $final = '';
+                    // We'll need to get the number of ob levels we're in, so that we can iterate over each, collecting
+                    // that buffer's output into the final output.
+                    $levels = ob_get_level();
+            
+                    for ($i = 0; $i < $levels; $i++) {
+                        $final .= ob_get_clean();
+                    }
+                    // Apply any filters to the final output
+                    echo apply_filters('final_output', $final);
+                },0);
+            }
+            
         }
+    }
 
-        $content=$this->optimizeAssets($content);
-        return Minify_HTML::minify( $content );
+	public function modifyBuffer($content) {        
+    //    return  Minify_HTML::minify($content,
+    //               array(
+    //                 //'jsMinifier' => array('JS\JShrink', 'minify'),
+    //                 'cssMinifier' => array('Minify_CSSmin', 'minify')
+    //               ));
+                  return $this->optimizeAssets($content);
+        // return Minify_HTML::minify( $this->optimizeAssets($content) );
     }
 
     protected function optimizeAssets($content){
+        
         // do combining and replace scripts with one combined asset for JS and CSS
         $document = new DOMDocument();
         // Ensure UTF-8 is respected by using 'mb_convert_encoding'
@@ -134,69 +191,71 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         libxml_use_internal_errors(true);
         $document->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
         $doc=$document->documentElement;
-        
         //combine styles
         $tags = $doc->getElementsByTagName('link');
         
         $styleSources=[];
         $length=$tags->length;
-        for ($i=$length; --$i >= 0;) { 
-            $tag= $tags->item($i);
-            if($tag->getAttribute('rel')==='stylesheet'){
-                $tag=$tags->item($i);
-                $src=$tag->getAttribute('href');
-                if(!empty($src)){
-                    array_unshift($styleSources,$src);
+        //online optimize if link detected
+        $head=$doc->getElementsByTagName('head')->item(0);
+            
+        if(!empty($head) && $length>0){
+            for ($i=$length; --$i >= 0;) { 
+                $tag= $tags->item($i);
+                if($tag->getAttribute('rel')==='stylesheet'){
+                    $tag=$tags->item($i);
+                    $src=$tag->getAttribute('href');
+                    if(!empty($src)){
+                        array_unshift($styleSources,$src);
+                    }
+                    $tag->parentNode->removeChild($tag);
                 }
-                $tag->parentNode->removeChild($tag);
+                
             }
             
+            $combinedStyles=$this->combineAssetsContent($styleSources);
+            $combinedStyles=$this->optimizeCSS($combinedStyles,$content);
+            $combinedStyles=$this->minify($combinedStyles,'css',MCW_PWA_DIR.$this->getStylePath());
+            
+            
+            //add style to head
+            $bundleStyle=$document->createElement('link');
+            $bundleStyle->setAttribute('rel','stylesheet');
+            $bundleStyle->setAttribute('href',MCW_PWA_URL.$this->getStylePath());
+            $head=$doc->getElementsByTagName('head')->item(0);
+            $head->appendChild($bundleStyle);
         }
-        
-        $combinedStyles=$this->combineAssetsContent($styleSources);
-        $combinedStyles=$this->optimizeCSS($combinedStyles,$content);
-        //$combinedStyles=$this->minify($combinedStyles,'css');
-        //$this->addSWPrecache($combinedStylesUrl);
-        
-        //$bundleStyle=$document->createElement('style',$combinedStyles);
-        
-        //add style to head
-        $bundleStyle=$document->createElement('link');
-        $bundleStyle->setAttribute('rel','stylesheet');
-        //$scriptPath=MCW_PWA_DIR.$this->getStylePath();
-        $bundleStyle->setAttribute('href',MCW_PWA_URL.$this->getStylePath());
-        $head=$doc->getElementsByTagName('head')->item(0);
-        $head->appendChild($bundleStyle);
-        
-
+    
         //combine scripts
         $tags = $doc->getElementsByTagName('script');
-        
-        $scriptSources=[];
         $length=$tags->length;
-        for ($i=$length; --$i >= 0;) { 
-            $tag=$tags->item($i);
-            $src=$tag->getAttribute('src');
-            if(!empty($src)){
-                array_unshift($scriptSources,$src);
-                $tag->parentNode->removeChild($tag);
-            } 
+        if(!empty($head) && $length>0){
+            $scriptSources=[];
+        
+            for ($i=$length; --$i >= 0;) { 
+                $tag=$tags->item($i);
+                $src=$tag->getAttribute('src');
+                if(!empty($src)){
+                    array_unshift($scriptSources,$src);
+                    $tag->parentNode->removeChild($tag);
+                } 
+                
+            }
             
+            $combinedScripts=$this->combineAssetsContent($scriptSources);
+            $scriptPath=MCW_PWA_DIR.$this->getScriptPath();
+            $combinedScripts=$this->minify($combinedScripts,'js',$scriptPath);
+            $combinedScriptsUrl=$this->getBundledUrl($scriptPath);
+            
+            
+            //add script to bottom body
+            $bundleScript=$document->createElement('script','');
+            $bundleScript->setAttribute('src',$combinedScriptsUrl);
+            
+            $bundleScript->setAttribute('async','true');
+            
+            $head->appendChild($bundleScript);
         }
-        
-        $combinedScripts=$this->combineAssetsContent($scriptSources);
-        $scriptPath=MCW_PWA_DIR.$this->getScriptPath();
-        $combinedScripts=$this->minify($combinedScripts,'js',$scriptPath);
-        $combinedScriptsUrl=$this->getBundledUrl($scriptPath);
-        
-
-        //add script to bottom body
-        $bundleScript=$document->createElement('script','');
-        $bundleScript->setAttribute('src',$combinedScriptsUrl);
-        
-        $bundleScript->setAttribute('async','true');
-        $head->appendChild($bundleScript);
-        
         return $document->saveHTML();
     }
 
