@@ -5,7 +5,7 @@ require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     
     private static $__instance = null;
-    private $_precaches=[];
+    private $_precaches;
 
 	/**
 	 * Singleton implementation
@@ -22,11 +22,9 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     protected function __construct() {
         parent::__construct();
         if($this->isEnable()){
-            $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
             add_action( 'init', array( $this, 'registerRewriteRule' ) );
             add_action( 'template_redirect', array( $this, 'renderSW' ), 2 );
             add_filter( 'query_vars', array( $this, 'registerQueryVar' ) );
-            $this->_precaches=get_option(MCW_PWA_SW_PRECACHE,[]);
         }
         
     }
@@ -113,14 +111,44 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
             self.addEventListener('activate', () => self.clients.claim());
             
             const workboxSW = new WorkboxSW();
-            workboxSW.precache([".join(',',get_option(MCW_PWA_SW_PRECACHE))."]);\n";
+            workboxSW.precache([".implode(',',$this->getPrecachesString())."]);\n";
             echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
 			exit;
 		}
     }
-    public function getPrecaches(){
-        return get_option(MCW_PWA_SW_PRECACHE);
+
+    protected function getPrecachesString(){
+        return array_map(function($file){
+            return "'".$file."'";
+        },$this->getPrecaches());
     }
+
+    public function getPrecaches(){
+      
+        if($this->_precaches===null){
+            $this->_precaches=$this->getBundleAssets();
+        }
+        return $this->_precaches;
+    }
+    
+    protected function getBundleAssets(){
+        $bundlesPath=MCW_PWA_Performance::instance()->getAssetsPath();
+        $assets=[];
+        $allowed =  array('js','css');
+
+        if(is_dir($bundlesPath)){
+            $files=scandir($bundlesPath);
+            foreach($files as $file){
+                $ext = pathinfo($bundlesPath.'/'.$file, PATHINFO_EXTENSION);
+                if(in_array($ext,$allowed) ) {
+                   $assets[]=MCW_PWA_URL.str_replace(MCW_PWA_DIR,'',$bundlesPath.'/'.$file);
+                }
+                
+            }
+        }
+        return $assets;
+    }
+
     public function addToPrecache($url){
         $this->_precache[]=$url;
         return update_option(MCW_PWA_SW_PRECACHE,$this->_precaches);
