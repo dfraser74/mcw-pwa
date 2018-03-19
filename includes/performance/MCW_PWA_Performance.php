@@ -10,6 +10,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     private $_styles=[];
     private $_currentUrl;
     private $_cacheKey;
+    private $_outputBufferedSetting;
     
     public static $_scriptPath='assets/temp';
     public static $_scriptName='bundle.js';
@@ -28,6 +29,39 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 
 		return self::$__instance;
 	}
+
+    public function isEnable(){
+        $outputbuffering=$this->isSettingEnabled();
+        $moduleEnabled=(int) get_option( $this->getKey(), 1 )===1;
+        return $moduleEnabled && $outputbuffering ;
+    }
+
+    public function isSettingEnabled(){
+        if($this->_outputBufferedSetting===null){
+            $this->_outputBufferedSetting=ini_get('output_buffering');
+        
+            if(is_string($this->_outputBufferedSetting)){
+                if(strtolower($this->_outputBufferedSetting)==='off')
+                    $this->_outputBufferedSetting=false;
+            } elseif(is_numeric($this->_outputBufferedSetting)){
+                if((int) $this->_outputBufferedSetting>0)
+                    $this->_outputBufferedSetting=false;
+                else
+                    $this->_outputBufferedSetting=true;
+            }
+
+            if($this->_outputBufferedSetting===false){
+                add_settings_error(
+                    $this->getKey(),
+                    esc_attr( 'php-setting-output-buffer' ),
+                    __('PHP Output Buffering is off, please turn it on in your php.ini to enable this feature. '),
+                    'error'
+                );
+            }
+        }
+
+        return $this->_outputBufferedSetting;
+    }
 
     public function getKey(){
         return 'mcw_enable_performance';
@@ -113,10 +147,15 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     }
 
 	public function settingsApiInit() {
+        $desc='Enable Combine, Minify, and Cache Output';
+        if(!$this->isSettingEnabled()){
+            $desc.=' (Can\'t enable this because your php.ini output buffering is off)';
+        }
+        
         register_setting( MCW_PWA_OPTION, $this->getKey(), 
         array(
                 'type'=>'boolean',
-                'description'=>'Combine, Minify, and Cache Output',
+                'description'=>$desc,
                 'default'=>1,
                 //'sanitize_callback'=>array($this,'settingSanitize')
                 )
@@ -127,7 +166,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         // settings, put it in our new section
         add_settings_field(
             $this->getKey(),
-            'Enable Combine, Minify, and Cache Output',
+            $desc,
             array($this,'settingCallback'),
             MCW_PWA_SETTING_PAGE,
             MCW_SECTION_PERFORMANCE
@@ -135,7 +174,8 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     } 
 
     public function run(){
-        add_action('template_redirect',array($this,'renderPage'));
+        if($this->isEnable())
+            add_action('template_redirect',array($this,'renderPage'));
     }
     
     public function renderPage(){

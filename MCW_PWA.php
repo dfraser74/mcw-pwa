@@ -25,7 +25,7 @@ You should have received a copy of the GNU General Public License
 along with Minimum Configuration WordPress PWA..
 */
 
-
+//phpinfo();die();
 defined( 'ABSPATH' ) or die( 'Nope, not accessing this' );
 define( 'MCW_PWA_URL',plugin_dir_url(__FILE__));
 define( 'MCW_PWA_DIR',plugin_dir_path(__FILE__));

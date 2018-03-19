@@ -26,13 +26,25 @@ abstract class MCW_PWA_Module{
     }
 
     public function settingCallback() {
-        
-        if(get_option( $this->getKey())){
-            echo '<input name="'.$this->getKey().'" id="'.$this->getKey().'" type="checkbox" value="1" class="code" checked/> Enable';
-        } else {
-            echo '<input name="'.$this->getKey().'" id="'.$this->getKey().'" type="checkbox" value="1" class="code"/> Enable';
+        if(!$this->isSettingEnabled()){
+            echo '<input name="'.$this->getKey().'" id="'.$this->getKey().'" type="checkbox" value="1" class="code" disabled/> Enable';
+        }
+        else{
+            if(get_option( $this->getKey())){
+                echo '<input name="'.$this->getKey().'" id="'.$this->getKey().'" type="checkbox" value="1" class="code" checked/> Enable';
+            } else {
+                echo '<input name="'.$this->getKey().'" id="'.$this->getKey().'" type="checkbox" value="1" class="code"/> Enable';
+            }
         }
         
+    }
+
+    public function isSettingEnabled(){
+        return true;
+    }
+
+    public function getErrorMessage(){
+        return $this->_errorMessage;
     }
 
     public function isEnable(){
