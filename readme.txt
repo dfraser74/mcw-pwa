@@ -11,7 +11,16 @@ This plugin is developed to enhance the browsing experiences on WordPress site w
 
 == Description ==
 
-This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images.
+This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images. The main goal is to make sure your website not losing the user by make sure the website loading quickly. 
+
+### Well Integrated with AMP Plugin
+[AMP page](https://www.ampproject.org/about/benefits/) is very fast to load. But how to keep the fast experience on your website when user open non AMP pages. If your website open in AMP Page, this plugin will automatically prepare to boost performance of your non AMP pages by caching the static assets like JavaScripts and CSS, so it's will ready once you access your non AMP pages. Then when user click the logo or go to your main website without AMP, those static assets will ready to serve without request to server anymore.
+
+### Keep The Website Fast In All Pages
+On first time user open your website, it will cache all the static assets like JavaScripts, CSS, fonts, and images that needed by all pages in your website.  Then later when user navigate to other pages, this static assets will serve directly from browser caches and boost the page loading. 
+
+### Only Load Images That Shows On Screen
+Images are nice to see on your website but will hurt performance if you have too many images in one page. On mobile, even these images not shows up on screen, its load and will slowing down the page loading performance. This plugin will detect the images that not shows up on screen and will not load it on first time you open the page. Later when you scroll the page, the plugin will detect if it's getting close to screen and load the image and ready to show once it appear on screen.
 
 
 == Installation ==
@@ -21,26 +30,11 @@ The goal of this plugin is to give good loading experiences on WordPress site wi
 1. Upload the plugin files to the `/wp-content/plugins/plugin-name` directory, or install the plugin through the WordPress plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress
 
-==Development==
-The plugin's trying to enhance the WordPress experiences through several components like:
-*   use service worker to cache all static assets like images, JavaScripts, CSS styles, and fonts.
-*   use Intersection Observer API to lazy load images on a page.
-*   make scripts loaded with async if no dependency found and defer if it has a dependency like jQuery library. **This is a bit risky if themes or plugins not include the scripts with wp_enqueue_script function or not include dependency when they enqueue the script. Make sure you check there is no error on JavaScript console when you activate the plugin.**
-*   install service worker if the website has AMP plugin running. AMP is a custom elements library that boost the website loading performance.
-
-**This is still in beta, so please don't put it in productions until you know what you're doing.**
-
-1. Clone the repo to a directory inside your `wp-content/plugins` directory by running command in your terminal `git clone https://github.com/tyohan/mcw-pwa.git mcw-pwa`
-2. Install NPM first because we need it to install Workbox library
-3. Switch your terminal working directory to `mcw-pwa/scripts` and run command `npm install` to install the WorkBox library.
-4. Activate the plugin inside your WordPress Admin Panel on plugin section.
-5. Check with your Browser's DevTool to **make sure there is no JavaScript error in your JavaScript console.**
 
 == Frequently Asked Questions ==
 
 = What PWA features it has? =
-
-Currently, it only provides service workers to cache static assets for better loading performance on repeat visits. Other features like offline access, push notification, and add to home screen haven't supported yet.
+It focus on performance for now. Well integrated with AMP plugin. It use service worker to cache static assets for better loading performance on repeat visits. Other features like offline access, push notification, and add to home screen haven't supported yet.
 
 = Is it works on all browsers? =
 Lazy loading images and critical resources loading enhancement works on all browsers.
