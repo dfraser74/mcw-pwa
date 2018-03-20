@@ -42,6 +42,7 @@ class MCW_PWA_Settings {
             MCW_PWA_SETTING_PAGE
         );
     }
+
     public function sectionPerformance() {
         echo '<p>Adjust setting below to boost your site performance:</p>';
     }
@@ -91,23 +92,30 @@ class MCW_PWA_Settings {
             ?>
             <h2 class="nav-tab-wrapper">
                 <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=enable_options" class="nav-tab '.($active_tab == "enable_options" ? "nav-tab-active" : "").'">Enable Features</a>';?>
+                <?php  echo MCW_PWA_Performance::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=cache_options" class="nav-tab '.($active_tab == "cache_options" ? "nav-tab-active" : "").'">Cache Management</a>':'';?>
                 <?php  //echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
             </h2>
 
-            <form method="post" action="options.php">
+            
             <?php
                 if( $active_tab == 'enable_options' ) {
+                    echo '<form method="post" action="options.php">';
                     // This prints out all hidden setting fields
                     settings_fields( MCW_PWA_OPTION);
                     do_settings_sections( MCW_PWA_SETTING_PAGE );
-                } else {
+                    submit_button();
+                    echo '</form>';
+                } elseif($active_tab == 'manifest_options'){
                     // This print out manifest settings
                     
-                } // end if/else
+                    
+                } elseif($active_tab == 'cache_options'){
+                    MCW_PWA_Performance::instance()->renderSettingCachePage();
+                }
                 
-                submit_button();
+                
             ?>
-            </form>
+            
         </div>
         <?php
     }

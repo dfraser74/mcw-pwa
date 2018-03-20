@@ -45,7 +45,7 @@ require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
 MCW_PWA_Settings::instance();
 MCW_PWA_Service_Worker::instance();
 MCW_PWA_LazyLoad::instance();
-//MCW_PWA_Assets::instance();
+MCW_PWA_Assets::instance();
 //MCW_PWA_Add_Homescreen::instance();
 MCW_PWA_Performance::instance();
 
@@ -57,6 +57,7 @@ function reset_options(){
     delete_option('mcw_enable_service_workers');
     delete_option('mcw_enable_lazy_load');
     delete_option('mcw_enable_performance');
+    delete_option(MCW_CACHE_OPTION_KEY);
 }
 
 add_action('parse_query','mcw_init');
