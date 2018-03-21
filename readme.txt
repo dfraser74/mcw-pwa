@@ -14,7 +14,10 @@ This plugin is developed to enhance the browsing experiences on WordPress site w
 This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images. The main goal is to make sure your website not losing the user by make sure the website loading quickly. 
 
 ### Well Integrated with AMP Plugin
-[AMP page](https://www.ampproject.org/about/benefits/) is very fast to load. But how to keep the fast experience on your website when user open non AMP pages. If your website open in AMP Page, this plugin will automatically prepare to boost performance of your non AMP pages by caching the static assets like JavaScripts and CSS, so it's will ready once you access your non AMP pages. Then when user click the logo or go to your main website without AMP, those static assets will ready to serve without request to server anymore.
+[AMP page](https://www.ampproject.org/about/benefits/) is very fast to load. But how to keep the fast experience on your website when user open non AMP pages. If your website open in AMP Page, this plugin will automatically prepare to boost performance of your non AMP pages by caching the static assets like JavaScripts and CSS, so it's will ready once you access your non AMP pages. Then when user click the logo or go to your main website without AMP, those static assets will ready to serve without request to server anymore. Currently only work with [Automattic AMP For WordPress](https://wordpress.org/plugins/amp/) plugin only.
+
+### Work Well With All Performance Plugin
+Add all static assets on precache settings like logo, CSS files, JavaScripts files, and fonts to precache list that your plugin generated to make sure it caches by service worker on loaded.
 
 ### Keep The Website Fast In All Pages
 On first time user open your website, it will cache all the static assets like JavaScripts, CSS, fonts, and images that needed by all pages in your website.  Then later when user navigate to other pages, this static assets will serve directly from browser caches and boost the page loading. 
@@ -29,6 +32,7 @@ The goal of this plugin is to give good loading experiences on WordPress site wi
 
 1. Upload the plugin files to the `/wp-content/plugins/plugin-name` directory, or install the plugin through the WordPress plugins screen directly.
 2. Activate the plugin through the 'Plugins' screen in WordPress
+3. Setting precache assets by add your static assets like logo, CSS files, JavaScripts files, and fonts to precaches list to make sure it's precaches on first time your page loaded.
 
 
 == Frequently Asked Questions ==
