@@ -14,7 +14,7 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     
     private static $__instance = null;
     private $_precaches;
-    private $_detectedAssets;
+    private $_assets;
 
 	/**
 	 * Singleton implementation
@@ -95,6 +95,7 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     public function uninstall(){
         delete_option($this->getKey());
         delete_option(MCW_PWA_SW_PRECACHES);
+        delete_option(MCW_PWA_SW_ASSETS);
         flush_rewrite_rules();
     }
     
@@ -177,7 +178,6 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     }
 
     public function addPrecache($url){
-       
         if (($key = array_search($url, $this->getPrecaches())) === false) {
            $this->_precaches[]=$url;
            return true;
@@ -186,15 +186,30 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
         }
     }
 
-    public function getDetectedAssets(){
-        if($this->_detectedAssets===null){
-            $this->_detectedAssets=get_option(MCW_PWA_SW_ASSETS,[]);
+    public function getAssets(){
+        if($this->_assets===null){
+            $this->_assets=get_option(MCW_PWA_SW_ASSETS,[]);
+            if(!is_array($this->_assets))
+                $this->_assets=[];
         }
-        return $this->_detectedAssets;
+        return $this->_assets;
     }
 
     public function scanAssets(){
         $html=file_get_contents( esc_url( home_url() ) );
+    }
+
+    public function addAsset($url){
+        if (($key = array_search($url, $this->getAssets())) === false) {
+            $this->_assets[]=$url;
+            return true;
+         } else {
+             return false;
+         }
+    }
+
+    public function saveAssets(){
+        update_option(MCW_PWA_SW_ASSETS,$this->_assets);
     }
 
     public function renderSettingCachePage(){
@@ -202,7 +217,7 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
         echo '<h2>Precache Management</h2>';
         echo '<p> Add your static assets URL here like CSS, JavaScripts, fonts, images, or icons</p>';
  
-        if( isset($_POST['mcw_precaches'])){
+        if( isset($_POST['mcw_precaches']) || isset($_POST['mcw_assets'])){
             $this->handlePrecachesForm();
         }
         include MCW_PWA_DIR.'includes/service_workers/MCW_PWA_Precaches_Setting.php';
@@ -215,11 +230,22 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
                 </div>';
                 exit;
         } else {
-            foreach ($_POST['mcw_precaches'] as $cache) {
-                $this->addPrecache($cache);
+            //save assets by default then add 
+            $assets=$_POST['mcw_assets'];
+            $this->_precaches=[];
+            if(is_array($_POST['mcw_precaches'])){
+                foreach ($_POST['mcw_precaches'] as $cache) {
+                    $this->addPrecache($cache);
+                }
+                $this->savePrecaches();
+                $assets=array_diff($assets,$this->getPrecaches());
             }
-            $this->savePrecaches();
-            echo '<div class="notice notice-success is-dismissible"><p>The caches has been updated</p></div>';
+            
+            foreach($assets as $asset){
+                $this->addAsset($asset);
+            }
+            $this->saveAssets();
+            echo '<div class="notice notice-success is-dismissible"><p>The precaches has been updated</p></div>';
 
         }
     }
