@@ -196,7 +196,13 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     }
 
     public function scanAssets(){
-        $html=file_get_contents( esc_url( home_url() ) );
+        $request=wp_remote_get(str_replace('localhost',$_SERVER['REMOTE_ADDR'], home_url()));
+        $html=wp_remote_retrieve_body($request);
+        
+        preg_match_all( '/<link\s*.+href=[\'|"]([^\'|"]+\.css?.+)[\'|"](.+)>/iU' , $html, $css_match );
+        preg_match_all( '#<script[^>]+?src=[\'|"]([^\'|"]+\.js?.+)[\'|"].*>(?:<\/script>)#iU' , $html, $js_match );
+
+        return array_merge($css_match[1],$js_match[1]);
     }
 
     public function addAsset($url){
@@ -213,12 +219,13 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     }
 
     public function renderSettingCachePage(){
-        
-        echo '<h2>Precache Management</h2>';
-        echo '<p> Add your static assets URL here like CSS, JavaScripts, fonts, images, or icons</p>';
- 
         if( isset($_POST['mcw_precaches']) || isset($_POST['mcw_assets'])){
             $this->handlePrecachesForm();
+        } elseif(isset($_POST['mcw_action']) && $_POST['mcw_action']==='scan'){
+            $assets=$this->scanAssets();
+            foreach($assets as $asset){
+                $this->addAsset($asset);
+            }
         }
         include MCW_PWA_DIR.'includes/service_workers/MCW_PWA_Precaches_Setting.php';
     }
