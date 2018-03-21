@@ -3,6 +3,7 @@ use MatthiasMullie\Minify;
 use bdk\CssXpath;
 
 define( 'MCW_CACHE_PREFIX','mcw-');
+define('MCW_CACHE_OPTION_KEY','mcw-caches');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 class MCW_PWA_Performance extends MCW_PWA_Module{
 	private static $__instance = null;
@@ -11,6 +12,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     private $_currentUrl;
     private $_cacheKey;
     private $_outputBufferedSetting;
+    protected $__enableByDefault=false;
     
     public static $_scriptPath='assets/temp';
     public static $_scriptName='bundle.js';
@@ -32,7 +34,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 
     public function isEnable(){
         $outputbuffering=$this->isSettingEnabled();
-        $moduleEnabled=(int) get_option( $this->getKey(), 1 )===1;
+        $moduleEnabled=(boolean) get_option( $this->getKey(), $this->_enableByDefault )===true;
         return $moduleEnabled && $outputbuffering ;
     }
 
@@ -70,6 +72,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 	public function __construct(){
         parent::__construct();
         add_action('save_post',array($this,'deletePostCache'));
+        add_action('admin_post_mcw_cache_form',array($this,'handleCachesForm'));
     }
 
     public function initScript(){
@@ -103,7 +106,45 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     }
 
     public function cachePage($key,$html){
-        return set_transient($key,$html,DAY_IN_SECONDS);
+        $now=time();
+        $currentCaches=get_option( MCW_CACHE_OPTION_KEY, [
+            'last_update'=>$now,
+            'caches'=>[]
+        ]);
+        $expired=DAY_IN_SECONDS;
+        $currentCaches['caches'][$key]=[
+            'expired'=>$now+$expired,
+            'url'=>$this->getCurrentUrl(),
+            'last_update'=>$now
+        ];
+
+        update_option( MCW_CACHE_OPTION_KEY, $currentCaches );
+        return set_transient($key,$html,$expired);
+    }
+
+    public function removeCache($key){
+        $now=time();
+        $currentCaches=get_option( MCW_CACHE_OPTION_KEY,null);
+        if($currentCaches!==null){
+            $caches=$currentCaches['caches'];
+            unset($caches[$key]);
+            delete_transient($key);
+            $currentCaches['last_update']=$now;
+            $currentCaches['caches']=$caches;
+            
+            update_option( MCW_CACHE_OPTION_KEY, $currentCaches );
+        }
+        
+    }
+
+    public function flushCache(){
+        $caches=get_option( MCW_CACHE_OPTION_KEY);
+        if(is_array($currentCaches['caches'])){
+            foreach ($currentCaches['caches'] as $key => $value) {
+                delete_transient($key);
+            }
+        }
+        delete_option(MCW_CACHE_OPTION_KEY);
     }
 
     protected function getCurrentUrl(){
@@ -393,7 +434,36 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         return $styles->render();
     }
     
+    public function renderSettingCachePage(){
+        
+        echo '<h2>Cache Management</h2>';
+        echo '<p> Below are all the caches from your website. You can delete each cache or just flush all caches.</p>';
+        if( isset($_POST['mcw_caches'])){
+            $this->handleCachesForm();
+        }
+        include MCW_PWA_DIR.'includes/performance/MCW_PWA_Cache_Setting.php';
+    }
 
+    public function handleCachesForm(){
+        if(!check_admin_referer('mcw_caches_update')){ 
+            echo '<div class="error">
+                <p>Sorry, your nonce was not correct. Please try again.</p>
+                </div>';
+                exit;
+        } else {
+            foreach ($_POST['mcw_caches'] as $key => $cache) {
+                $this->removeCache($key);
+            }
+            echo '<div class="notice notice-success is-dismissible"><p>The caches has been updated</p></div>';
+
+        }
+        
+        
+    }
+
+    public function deactivate(){
+        $this->flushCache();
+    }
     
     
 }

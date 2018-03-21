@@ -1,5 +1,7 @@
 <?php 
 abstract class MCW_PWA_Module{
+    protected $_enableByDefault=true;
+
     abstract public function getKey();
 
     public function settingSanitize($input){
@@ -48,10 +50,18 @@ abstract class MCW_PWA_Module{
     }
 
     public function isEnable(){
-        return (int) get_option( $this->getKey(), 1 )===1;
+        return (boolean) get_option( $this->getKey(), $this->_enableByDefault )===true;
     }
 
     public static function debug($msg){
         echo '<script>console.log('.$msg.');</script>';
+    }
+
+    public function deactivate(){
+       
+    }
+
+    public function uninstall(){
+        delete_option($this->getKey());
     }
 }

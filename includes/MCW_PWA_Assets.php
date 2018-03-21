@@ -4,6 +4,7 @@ class MCW_PWA_Assets extends MCW_PWA_Module{
 	private static $__instance = null;
 	private $_scripts=[];
 	private $_styles=[];
+	protected $__enableByDefault=false;
 
 	/**
 	 * Singleton implementation
@@ -49,7 +50,7 @@ class MCW_PWA_Assets extends MCW_PWA_Module{
         // settings, put it in our new section
         add_settings_field(
             $this->getKey(),
-            'Enable Async Defer ',
+            'Enable Aasync Defer On Scripts',
             array($this,'settingCallback'),
             MCW_PWA_SETTING_PAGE,
             MCW_SECTION_PERFORMANCE
