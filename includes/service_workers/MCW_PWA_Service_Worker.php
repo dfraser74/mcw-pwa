@@ -64,7 +64,7 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
         // settings, put it in our new section
         add_settings_field(
             $this->getKey(),
-            'Enable service workers',
+            'Enable Precaches And Dynamic Caches On Static Assets',
             array($this,'settingCallback'),
             MCW_PWA_SETTING_PAGE,
             MCW_SECTION_PWA

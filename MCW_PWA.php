@@ -34,12 +34,12 @@ define('MCW_SECTION_PERFORMANCE','mcw_option_performance');
 define('MCW_SECTION_PWA','mcw_option_pwa');
 define('MCW_PWA_SETTING_PAGE','mcw_setting_page');
 
-require_once(MCW_PWA_DIR . '/vendor/autoload.php');
-require_once(MCW_PWA_DIR.'/includes/service_workers/MCW_PWA_Service_Worker.php');
-require_once(MCW_PWA_DIR.'/includes/performance/MCW_PWA_Performance.php');
-require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Settings.php');
-require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
-//require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
+require_once(MCW_PWA_DIR . 'vendor/autoload.php');
+require_once(MCW_PWA_DIR.'includes/service_workers/MCW_PWA_Service_Worker.php');
+require_once(MCW_PWA_DIR.'includes/performance/MCW_PWA_Performance.php');
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Settings.php');
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_LazyLoad.php');
+require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
 //require_once(MCW_PWA_DIR.'includes/MCW_PWA_Add_Homescreen.php');
 
 MCW_PWA_Settings::instance();
