@@ -12,6 +12,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     private $_currentUrl;
     private $_cacheKey;
     private $_outputBufferedSetting;
+    protected $__enableByDefault=false;
     
     public static $_scriptPath='assets/temp';
     public static $_scriptName='bundle.js';
@@ -33,7 +34,7 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
 
     public function isEnable(){
         $outputbuffering=$this->isSettingEnabled();
-        $moduleEnabled=(int) get_option( $this->getKey(), 1 )===1;
+        $moduleEnabled=(boolean) get_option( $this->getKey(), $this->_enableByDefault )===true;
         return $moduleEnabled && $outputbuffering ;
     }
 
@@ -134,6 +135,16 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
             update_option( MCW_CACHE_OPTION_KEY, $currentCaches );
         }
         
+    }
+
+    public function flushCache(){
+        $caches=get_option( MCW_CACHE_OPTION_KEY);
+        if(is_array($currentCaches['caches'])){
+            foreach ($currentCaches['caches'] as $key => $value) {
+                delete_transient($key);
+            }
+        }
+        delete_option(MCW_CACHE_OPTION_KEY);
     }
 
     protected function getCurrentUrl(){
@@ -450,7 +461,9 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
         
     }
 
-    
+    public function deactivate(){
+        $this->flushCache();
+    }
     
     
 }

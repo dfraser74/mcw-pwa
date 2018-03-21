@@ -1,9 +1,9 @@
 <?php
 define( 'MCW_SETTING_URL', 'mcw_setting_page' );
-require_once(MCW_PWA_DIR.'/includes/MCW_PWA_Service_Worker.php');
+require_once(MCW_PWA_DIR.'/includes/service_workers/MCW_PWA_Service_Worker.php');
 require_once(MCW_PWA_DIR.'/includes/MCW_PWA_LazyLoad.php');
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Assets.php');
-
+require_once(MCW_PWA_DIR.'/includes/performance/MCW_PWA_Performance.php');
 class MCW_PWA_Settings {
 
     private static $__instance = null;
@@ -93,6 +93,7 @@ class MCW_PWA_Settings {
             <h2 class="nav-tab-wrapper">
                 <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=enable_options" class="nav-tab '.($active_tab == "enable_options" ? "nav-tab-active" : "").'">Enable Features</a>';?>
                 <?php  echo MCW_PWA_Performance::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=cache_options" class="nav-tab '.($active_tab == "cache_options" ? "nav-tab-active" : "").'">Cache Management</a>':'';?>
+                <?php  echo MCW_PWA_Service_Worker::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=precache_options" class="nav-tab '.($active_tab == "precache_options" ? "nav-tab-active" : "").'">Precache</a>':'';?>
                 <?php  //echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
             </h2>
 
@@ -111,7 +112,10 @@ class MCW_PWA_Settings {
                     
                 } elseif($active_tab == 'cache_options'){
                     MCW_PWA_Performance::instance()->renderSettingCachePage();
+                } elseif($active_tab == 'precache_options'){
+                    MCW_PWA_Service_Worker::instance()->renderSettingCachePage();
                 }
+                
                 
                 
             ?>
