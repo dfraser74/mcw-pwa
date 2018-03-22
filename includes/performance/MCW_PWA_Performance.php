@@ -101,16 +101,19 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     }
 
     public function getCachedPage($key){
-        // return false;
+        return false;
         return get_transient($key);
     }
 
-    public function cachePage($key,$html){
-        $now=time();
-        $currentCaches=get_option( MCW_CACHE_OPTION_KEY, [
+    public function getCurrentCaches(){
+        return get_option( MCW_CACHE_OPTION_KEY, [
             'last_update'=>$now,
             'caches'=>[]
         ]);
+    }
+    public function cachePage($key,$html){
+        $now=time();
+        $currentCaches=$this->getCurrentCaches();
         $expired=DAY_IN_SECONDS;
         $currentCaches['caches'][$key]=[
             'expired'=>$now+$expired,
@@ -259,80 +262,29 @@ class MCW_PWA_Performance extends MCW_PWA_Module{
     }
 
     protected function optimizeAssets($content){
+        $cssRegex='/<link\s*.+href=[\'|"]([^\'|"]+\.css?.+)[\'|"](.+)>/iU';
+        $jsRegex='#<script[^>]+?src=[\'|"]([^\'|"]+\.js?.+)[\'|"].*>(?:<\/script>)#iU';
+        preg_match_all( $cssRegex , $content, $css_matches );
+        preg_match_all( $jsRegex , $content, $js_matches );
+        //remove all css and js files
+        $content=preg_replace([$jsRegex,$cssRegex],'',$content);
+            
+        $combinedStyles=$this->combineAssetsContent($css_matches[1]);
+        $combinedStyles=$this->optimizeCSS($combinedStyles,$content);
+        $combinedStyles=$this->minify($combinedStyles,'css',MCW_PWA_DIR.$this->getStylePath());
+
+        $bundleStyleUrl=MCW_PWA_URL.$this->getStylePath();
+        $bundleStyleTag='<link rel="stylesheet" href="'.$bundleStyleUrl.'" type="text/css" >';
         
-        // do combining and replace scripts with one combined asset for JS and CSS
-        $document = new DOMDocument();
-        // Ensure UTF-8 is respected by using 'mb_convert_encoding'
-        //error_reporting(E_ERROR);
-        libxml_use_internal_errors(true);
-        $document->loadHTML(mb_convert_encoding($content, 'HTML-ENTITIES', 'UTF-8'));
-        $doc=$document->documentElement;
-        //combine styles
-        $tags = $doc->getElementsByTagName('link');
+
+        $combinedScripts=$this->combineAssetsContent($js_matches[1]);
+        $scriptPath=MCW_PWA_DIR.$this->getScriptPath();
+        $combinedScripts=$this->minify($combinedScripts,'js',$scriptPath);
+        $combinedScriptsUrl=$this->getBundledUrl($scriptPath);
+        $bundleScriptTag='<script src="'.$combinedScriptsUrl.'" async></script>';
         
-        $styleSources=[];
-        $length=$tags->length;
-        //online optimize if link detected
-        $head=$doc->getElementsByTagName('head')->item(0);
-            
-        if(!empty($head) && $length>0){
-            for ($i=$length; --$i >= 0;) { 
-                $tag= $tags->item($i);
-                if($tag->getAttribute('rel')==='stylesheet'){
-                    $tag=$tags->item($i);
-                    $src=$tag->getAttribute('href');
-                    if(!empty($src)){
-                        array_unshift($styleSources,$src);
-                    }
-                    $tag->parentNode->removeChild($tag);
-                }
-                
-            }
-            
-            $combinedStyles=$this->combineAssetsContent($styleSources);
-            $combinedStyles=$this->optimizeCSS($combinedStyles,$content);
-            $combinedStyles=$this->minify($combinedStyles,'css',MCW_PWA_DIR.$this->getStylePath());
-            
-            
-            //add style to head
-            $bundleStyle=$document->createElement('link');
-            $bundleStyle->setAttribute('rel','stylesheet');
-            $bundleStyle->setAttribute('href',MCW_PWA_URL.$this->getStylePath());
-            $head=$doc->getElementsByTagName('head')->item(0);
-            $head->appendChild($bundleStyle);
-        }
-    
-        //combine scripts
-        $tags = $doc->getElementsByTagName('script');
-        $length=$tags->length;
-        if(!empty($head) && $length>0){
-            $scriptSources=[];
-        
-            for ($i=$length; --$i >= 0;) { 
-                $tag=$tags->item($i);
-                $src=$tag->getAttribute('src');
-                if(!empty($src)){
-                    array_unshift($scriptSources,$src);
-                    $tag->parentNode->removeChild($tag);
-                } 
-                
-            }
-            
-            $combinedScripts=$this->combineAssetsContent($scriptSources);
-            $scriptPath=MCW_PWA_DIR.$this->getScriptPath();
-            $combinedScripts=$this->minify($combinedScripts,'js',$scriptPath);
-            $combinedScriptsUrl=$this->getBundledUrl($scriptPath);
-            
-            
-            //add script to bottom body
-            $bundleScript=$document->createElement('script','');
-            $bundleScript->setAttribute('src',$combinedScriptsUrl);
-            
-            $bundleScript->setAttribute('async','true');
-            
-            $head->appendChild($bundleScript);
-        }
-        return $document->saveHTML();
+        $content=str_replace('</head>',$bundleStyleTag.$bundleScriptTag.'</head>',$content);
+        return $content;
     }
 
     protected function addSWPrecache($url){

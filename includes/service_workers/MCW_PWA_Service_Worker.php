@@ -8,6 +8,8 @@ Pending task:
 define( 'MCW_SW_QUERY_VAR', 'mcw_pwa_service_worker' );
 define( 'MCW_PWA_SW_PRECACHES','mcw_pwa_sw_precache');
 define( 'MCW_PWA_SW_ASSETS','mcw_pwa_sw_assets');
+define( 'MCW_OFFLINE_PAGE','mcw_pwa_sw_offline_page');
+
 require_once(MCW_PWA_DIR.'includes/MCW_PWA_Module.php');
 
 class MCW_PWA_Service_Worker extends MCW_PWA_Module{
@@ -92,6 +94,10 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
 		add_rewrite_rule('sw.js$', 'index.php?' . MCW_SW_QUERY_VAR . '=1', 'top');
     }
     
+    public function activate(){
+        $this->scanAndAddAssets(true);
+    }
+
     public function uninstall(){
         delete_option($this->getKey());
         delete_option(MCW_PWA_SW_PRECACHES);
@@ -107,7 +113,10 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
             if(!(\'serviceWorker\' in navigator)) {
               return;
             }
-            navigator.serviceWorker.register(\''.$this->getSWUrl().'\');
+            window.addEventListener(\'load\', function() {
+                navigator.serviceWorker.register(\''.$this->getSWUrl().'\');
+            });
+            
             
             })();
         </script>';
@@ -118,12 +127,19 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
 
 		if ( $wp_query->get( MCW_SW_QUERY_VAR ) ) {
             header( 'Content-Type: application/javascript; charset=utf-8' );
-            echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/importScripts/workbox-sw.prod.v2.1.2.js');";
+            echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/workbox-sw.js');";
             echo "self.addEventListener('install', () => self.skipWaiting());
             self.addEventListener('activate', () => self.clients.claim());
             
-            const workboxSW = new WorkboxSW();
-            workboxSW.precache([".implode(',',$this->getPrecachesString())."]);\n";
+
+            workbox.precaching.precacheAndRoute([".implode(',',$this->getPrecachesString())."]);\n";
+            if(!empty($this->getOfflinePage())){
+                echo "const matcher = ({event}) => event.request.mode === 'navigate';
+                const handler = (obj) => fetch(obj.event.request).catch(() => caches.match('".$this->getOfflineUrl()."'));
+                
+                workbox.routing.registerRoute(matcher, handler);\n";
+            }
+            
             echo file_get_contents( MCW_PWA_DIR . 'scripts/sw.js' );
 			exit;
 		}
@@ -143,9 +159,14 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     }
     public function getAllPrecaches(){
         $preaches=$this->getPrecaches();
-        if(MCW_PWA_Performance::instance()->isEnable()){
-            $preaches=array_merge($preaches,$this->getBundleAssets());    
+        // if(MCW_PWA_Performance::instance()->isEnable()){
+        //     $preaches=array_merge($preaches,$this->getBundleAssets());    
+        // }
+
+        if(!empty($this->getOfflinePage())){
+            $preaches[]=$this->getOfflineUrl();
         }
+
         return $preaches;
     }
     
@@ -206,7 +227,7 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
     }
 
     public function addAsset($url){
-        if (($key = array_search($url, $this->getAssets())) === false) {
+        if (($key = array_search($url, $this->getPrecaches())) === false && ($key = array_search($url, $this->getAssets())) === false) {
             $this->_assets[]=$url;
             return true;
          } else {
@@ -218,16 +239,53 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
         update_option(MCW_PWA_SW_ASSETS,$this->_assets);
     }
 
+    public function scanAndAddAssets($precache=false){
+        $assets=$this->scanAssets();
+        foreach($assets as $asset){
+            if($precache)
+                $this->addPrecache($asset);
+            else
+                $this->addAsset($asset);
+        }
+    }
+    public function getOfflinePage(){
+        return get_option(MCW_OFFLINE_PAGE,null);
+    }
+
+    public function getOfflineUrl(){
+        return get_page_link($this->getOfflinePage());
+    }
+
+    public function renderSettingOfflinePage(){
+        if( isset($_POST['mcw_offline_page'])){
+            $this->handleOfflineForm();
+        } 
+        include MCW_PWA_DIR.'includes/service_workers/MCW_PWA_Offline_Setting.php';
+    }
+
     public function renderSettingCachePage(){
         if( isset($_POST['mcw_precaches']) || isset($_POST['mcw_assets'])){
             $this->handlePrecachesForm();
         } elseif(isset($_POST['mcw_action']) && $_POST['mcw_action']==='scan'){
-            $assets=$this->scanAssets();
-            foreach($assets as $asset){
-                $this->addAsset($asset);
-            }
+            $this->scanAndAddAssets();
         }
         include MCW_PWA_DIR.'includes/service_workers/MCW_PWA_Precaches_Setting.php';
+    }
+
+    public function handleOfflineForm(){
+        if(!check_admin_referer('mcw_offline')){ 
+            echo '<div class="error">
+                <p>Sorry, your nonce was not correct. Please try again.</p>
+                </div>';
+                exit;
+        } else {
+            
+            if(!empty($_POST['mcw_offline_page'])){
+                update_option(MCW_OFFLINE_PAGE,$_POST['mcw_offline_page']);
+            }
+            echo '<div class="notice notice-success is-dismissible"><p>The offline page already updated!</p></div>';
+
+        }
     }
 
     public function handlePrecachesForm(){
