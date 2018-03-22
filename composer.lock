@@ -4,7 +4,7 @@
         "Read more about it at https://getcomposer.org/doc/01-basic-usage.md#composer-lock-the-lock-file",
         "This file is @generated automatically"
     ],
-    "content-hash": "07afde045f851c07bdaf042220cf5702",
+    "content-hash": "d6152d7952b4daac049f67c2025ab63b",
     "packages": [
         {
             "name": "bdk/css-xpath",

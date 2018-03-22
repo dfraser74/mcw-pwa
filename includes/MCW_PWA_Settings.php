@@ -92,8 +92,9 @@ class MCW_PWA_Settings {
             ?>
             <h2 class="nav-tab-wrapper">
                 <?php  echo '<a href="?page='.MCW_SETTING_URL.'&tab=enable_options" class="nav-tab '.($active_tab == "enable_options" ? "nav-tab-active" : "").'">Enable Features</a>';?>
-                <?php  echo MCW_PWA_Performance::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=cache_options" class="nav-tab '.($active_tab == "cache_options" ? "nav-tab-active" : "").'">Cache Management</a>':'';?>
+                <?php  //echo MCW_PWA_Performance::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=cache_options" class="nav-tab '.($active_tab == "cache_options" ? "nav-tab-active" : "").'">Cache Management</a>':'';?>
                 <?php  echo MCW_PWA_Service_Worker::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=precache_options" class="nav-tab '.($active_tab == "precache_options" ? "nav-tab-active" : "").'">Precache</a>':'';?>
+                <?php  echo MCW_PWA_Service_Worker::instance()->isEnable()?'<a href="?page='.MCW_SETTING_URL.'&tab=offline_options" class="nav-tab '.($active_tab == "offline_options" ? "nav-tab-active" : "").'">Offline</a>':'';?>
                 <?php  //echo '<a href="?page='.MCW_SETTING_URL.'&tab=manifest_options" class="nav-tab '.($active_tab == "manifest_options" ? "nav-tab-active" : "").'">Web Manifest</a>';?>
             </h2>
 
@@ -114,7 +115,9 @@ class MCW_PWA_Settings {
                     MCW_PWA_Performance::instance()->renderSettingCachePage();
                 } elseif($active_tab == 'precache_options'){
                     MCW_PWA_Service_Worker::instance()->renderSettingCachePage();
-                }
+                } elseif($active_tab == 'offline_options'){
+                    MCW_PWA_Service_Worker::instance()->renderSettingOfflinePage();
+                } 
                 
                 
                 

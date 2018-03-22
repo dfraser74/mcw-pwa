@@ -1,6 +1,6 @@
 {
   "requires": true,
   "dependencies": {
-    "workbox-sw": "^2.1.2"
+    "workbox-sw": "^3.0.0"
   }
 }

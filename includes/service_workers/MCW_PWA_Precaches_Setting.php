@@ -26,14 +26,22 @@
     }
 
 </script>
+<div id="scan-assets">
+    <form method="POST">
+        <h4>1. Click button below to scan your website and detect all statics assets that can be precaches</h4>
+        <input type="hidden" name="mcw_action" value="scan"/>
+        <?php submit_button('Scan Static Assets');?>
+    </form>
+</div>
 <div id="add-precache">
+    <h4>2. Add manually your static assets url if some static assets can't be scanned</h4>
     <input type="text" id="new-precache" size="50"/> <button class="button-primary" onclick="addPrecache()">Add Precache</button>
 </div>
 
 <div id="preaches-container">
 <form method="POST">
 <?php wp_nonce_field('mcw_precaches_update');?>
-<h3>Preaches Files</h3>
+<h4>3. Manage your static assets below, check that you want to precache.</h4>
 <p class="description">Check files below that you want to enable as precaches assets. Unchecked files will not precaches.</p>
 <ul id="precaches-list">
     <li><input type="checkbox" value="select_all" onclick="selectAllCaches(this)"/> <strong style="font-size:1.2em;">Select All Preaches</strong></li>

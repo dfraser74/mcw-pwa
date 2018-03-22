@@ -1,20 +1,16 @@
-workboxSW.router.registerRoute(/wp-admin(.*)|(.*)preview=true(.*)/,
-    workboxSW.strategies.networkOnly()
+workbox.routing.registerRoute(/wp-admin(.*)|(.*)preview=true(.*)/,
+    workbox.strategies.networkOnly()
 );
 
-// Cache for static assets. We check using a cache first strategy
-workboxSW.router.registerRoute(/\.(?:css|js)$/,
-workboxSW.strategies.cacheFirst({
-cacheName: 'static-cache',
-cacheExpiration: {
-        maxEntries: 50
-        }
-    })
-);
+// Stale while revalidate for JS and CSS that are not precache
+workbox.routing.registerRoute(
+    /\.(?:js|css)$/,
+    workbox.strategies.staleWhileRevalidate(),
+  );
 
 // We want no more than 50 images in the cache. We check using a cache first strategy
-workboxSW.router.registerRoute(/\.(?:png|gif|jpg)$/,
-    workboxSW.strategies.cacheFirst({
+workbox.routing.registerRoute(/\.(?:png|gif|jpg)$/,
+    workbox.strategies.cacheFirst({
     cacheName: 'images-cache',
     cacheExpiration: {
             maxEntries: 50
@@ -23,9 +19,8 @@ workboxSW.router.registerRoute(/\.(?:png|gif|jpg)$/,
 );
 
 // We need cache fonts if any
-workboxSW.router.registerRoute(/(.*)\.(?:woff|eot|woff2|ttf|svg)$/,
-    workboxSW.strategies.cacheFirst({
-    cacheName: 'fonts-cache',
+workbox.routing.registerRoute(/(.*)\.(?:woff|eot|woff2|ttf|svg)$/,
+    workbox.strategies.cacheFirst({
     cacheExpiration: {
             maxEntries: 20
         },
@@ -35,9 +30,8 @@ workboxSW.router.registerRoute(/(.*)\.(?:woff|eot|woff2|ttf|svg)$/,
     })
 );
 
-workboxSW.router.registerRoute(/https:\/\/fonts.googleapis.com\/(.*)/,
-workboxSW.strategies.cacheFirst({
-  cacheName: 'fonts-cache',
+workbox.routing.registerRoute(/https:\/\/fonts.googleapis.com\/(.*)/,
+workbox.strategies.cacheFirst({
     cacheExpiration: {
         maxEntries: 20
     },
