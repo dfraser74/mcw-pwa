@@ -3,7 +3,7 @@
 Plugin Name:  Minimum Configuration WordPress PWA
 Plugin URI:   https://github.com/tyohan/mcw-pwa
 Description:  WordPress plugin to optimize loading performance with minimum configuration using PWA approach
-Version:      0.1.3
+Version:      0.1.4
 Author:       Yohan Totting
 Author URI:   https://tyohan.me
 License:      GPL2
@@ -82,10 +82,11 @@ function mcw_init(){
         //Disable some performance enhancement on AMP
         //Try to support AMP for WP plugin https://github.com/ahmedkaludi/Accelerated-Mobile-Pages
         // use AMPFORWP_AMP_QUERY_VAR
-        if(AMP_QUERY_VAR!==null && !get_query_var( AMP_QUERY_VAR, false )){
-            MCW_PWA_LazyLoad::instance()->run();
-            //MCW_PWA_Performance::instance()->run();
-            MCW_PWA_Assets::instance()->run();
+        if(defined('AMP_QUERY_VAR') && !get_query_var( AMP_QUERY_VAR, false )){
+                MCW_PWA_LazyLoad::instance()->run();
+                //MCW_PWA_Performance::instance()->run();
+                MCW_PWA_Assets::instance()->run();
+            
         }
     }    
 }

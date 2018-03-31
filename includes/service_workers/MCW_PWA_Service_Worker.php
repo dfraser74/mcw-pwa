@@ -129,10 +129,13 @@ class MCW_PWA_Service_Worker extends MCW_PWA_Module{
             header( 'Content-Type: application/javascript; charset=utf-8' );
             echo "importScripts('". MCW_PWA_URL ."scripts/node_modules/workbox-sw/build/workbox-sw.js');";
             echo "self.addEventListener('install', () => self.skipWaiting());
-            self.addEventListener('activate', () => self.clients.claim());
-            
+            self.addEventListener('activate', () => self.clients.claim());";
+            if(defined('WP_DEBUG') and WP_DEBUG===true)
+                echo "workbox.setConfig({ debug: true });";
+            else
+                echo "workbox.setConfig({ debug: false });";
 
-            workbox.precaching.precacheAndRoute([".implode(',',$this->getPrecachesString())."]);\n";
+            echo "workbox.precaching.precacheAndRoute([".implode(',',$this->getPrecachesString())."]);\n";
             if(!empty($this->getOfflinePage())){
                 echo "const matcher = ({event}) => event.request.mode === 'navigate';
                 const handler = (obj) => fetch(obj.event.request).catch(() => caches.match('".$this->getOfflineUrl()."'));

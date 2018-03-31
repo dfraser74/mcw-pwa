@@ -7,24 +7,33 @@ Stable tag: trunk
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-This plugin is developed to enhance the browsing experiences on WordPress site with minimum configuration. It's integrated with AMP page and make your website able to start FAST with AMP but stay FAST after on your original website.
+This plugin is developed to add Progressive Web App(PWA) enhancement with minimum configuration. 
 
 == Description ==
 
-This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images. The main goal is to make sure your website not losing the user by make sure the website loading quickly. 
+This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images. The main goal is to make sure your website not losing the user by make sure the website loading quickly. It's integrated with [AMP page](https://www.ampproject.org/about/benefits/) and make your website start FAST with AMP but stay FAST after on your original website.
 
-### Well Integrated with AMP Plugin
+=== Well Integrated with AMP Plugin ===
 [AMP page](https://www.ampproject.org/about/benefits/) is very fast to load. But how to keep the fast experience on your website when user open non AMP pages. If your website open in AMP Page, this plugin will automatically prepare to boost performance of your non AMP pages by caching the static assets like JavaScripts and CSS, so it's will ready once you access your non AMP pages. Then when user click the logo or go to your main website without AMP, those static assets will ready to serve without request to server anymore. Currently only work with [Automattic AMP For WordPress](https://wordpress.org/plugins/amp/) plugin only.
 
-### Work Well With All Performance Plugin
+=== Work Well With All Performance Plugin ===
 Add all static assets on precache settings like logo, CSS files, JavaScripts files, and fonts to precache list that your plugin generated to make sure it caches by service worker on loaded.
 
-### Keep The Website Fast In All Pages
+=== Keep The Website Fast In All Pages ===
 On first time user open your website, it will cache all the static assets like JavaScripts, CSS, fonts, and images that needed by all pages in your website.  Then later when user navigate to other pages, this static assets will serve directly from browser caches and boost the page loading. 
+
+=== Create Custom Offline Page ===
+You can set what page that you want to show when user access your web but they can't access it due on offline condition. The page will shows up instead default browser offline page. You can give better experience or information to your users about what happen and ask them to comeback later.
 
 ### Only Load Images That Shows On Screen
 Images are nice to see on your website but will hurt performance if you have too many images in one page. On mobile, even these images not shows up on screen, its load and will slowing down the page loading performance. This plugin will detect the images that not shows up on screen and will not load it on first time you open the page. Later when you scroll the page, the plugin will detect if it's getting close to screen and load the image and ready to show once it appear on screen.
 
+== Screenshots ==
+
+1. Settings Page To Enable Features.
+2. Scan Static Assets And Precache It.
+3. Set Your Offline Page That Shows When User Access Website On Offline.
+4. Service Workers Precache Static Assets When AMP Page Loaded
 
 == Installation ==
 
