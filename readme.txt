@@ -7,11 +7,11 @@ Stable tag: trunk
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-This plugin is developed to enhance the browsing experiences on WordPress site with progressive enhancement but minimum configuration. It's integrated with [AMP page](https://www.ampproject.org/about/benefits/) and make your website start FAST with AMP but stay FAST after on your original website.
+This plugin is developed to add Progressive Web App(PWA) enhancement with minimum configuration. 
 
 == Description ==
 
-This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images. The main goal is to make sure your website not losing the user by make sure the website loading quickly. 
+This plugin's goal is to improve your WordPress website experiences with [Progressive Web App](https://developers.google.com/web/progressive-web-apps/) enhancement. Right now it will cache your static assets like scripts, stylesheets, images, and fonts. It's also boost your website loading performance especially on first time loading, and website with a lot of images. The main goal is to make sure your website not losing the user by make sure the website loading quickly. It's integrated with [AMP page](https://www.ampproject.org/about/benefits/) and make your website start FAST with AMP but stay FAST after on your original website.
 
 === Well Integrated with AMP Plugin ===
 [AMP page](https://www.ampproject.org/about/benefits/) is very fast to load. But how to keep the fast experience on your website when user open non AMP pages. If your website open in AMP Page, this plugin will automatically prepare to boost performance of your non AMP pages by caching the static assets like JavaScripts and CSS, so it's will ready once you access your non AMP pages. Then when user click the logo or go to your main website without AMP, those static assets will ready to serve without request to server anymore. Currently only work with [Automattic AMP For WordPress](https://wordpress.org/plugins/amp/) plugin only.
