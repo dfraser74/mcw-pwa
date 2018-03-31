@@ -7,7 +7,7 @@ Stable tag: trunk
 License: GPLv2 or later
 License URI: https://www.gnu.org/licenses/gpl-2.0.html
 
-This plugin is developed to add Progressive Web Apps (PWA) enhancement with minimum configuration. Preache your assets, and add offline page.
+Add Progressive Web Apps (PWA) enhancement to your WordPress with minimum configuration. Preache your assets, and add offline page.
 
 == Description ==
 
